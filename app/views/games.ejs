@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container">
+          <h1 class="game-title">Stigmer</h1>
+          <h2 class="connexion-title">Gestion du jeu</h2>
+
+          <form method="POST" id="gamesForm" action="games" class="margin-top-small">
+            <div class="row justify-content-md-center manage-title">
+              <div class="col-md-auto">
+                <div class="group margin-bot-small">
+                  <input type="text" name="altGameName" id="altGameName" required maxlength="20" />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Nom du jeu ? (Alternatif) :</label>
+                </div>
+              </div>
+            </div>
+            <div class="row justify-content-md-center manage-title">
+              <div class="col-md-auto">
+                <fieldset class="field">
+                  <legend class="field-legend">Cartes</legend>
+
+                  <select id="mapSelect" name="mapSelect" class="form-control" required>
+                    <option value="">Choisissez une carte</option>
+                    <optgroup label="Random">
+                      <% for(let i = 0; i < games.maps.length; i++) { %> <% if(games.maps[i].mapType == "random"){ %>
+                      <option value="<%= games.maps[i].mapName %>"><%= games.maps[i].mapName %></option>
+                      <% } %> <% } %>
+                    </optgroup>
+                    <optgroup label="Continuous 1">
+                      <% for(let i = 0; i < games.maps.length; i++) { %> <% if(games.maps[i].mapType == "continuous1"){ %>
+                      <option value="<%= games.maps[i].mapName %>"><%= games.maps[i].mapName %></option>
+                      <% } %> <% } %>
+                    </optgroup>
+                    <optgroup label="Continuous 2">
+                      <% for(let i = 0; i < games.maps.length; i++) { %> <% if(games.maps[i].mapType == "continuous2"){ %>
+                      <option value="<%= games.maps[i].mapName %>"><%= games.maps[i].mapName %></option>
+                      <% } %> <% } %>
+                    </optgroup>
+                    <optgroup label="Démo">
+                      <% for(let i = 0; i < games.maps.length; i++) { %> <% if(games.maps[i].mapType == "demo"){ %>
+                      <option value="<%= games.maps[i].mapName %>"><%= games.maps[i].mapName %></option>
+                      <% } %> <% } %>
+                    </optgroup>
+                  </select>
+                  <h6>Randomisation de la carte :</h6>
+                  <div class="col-md-auto manage-col">
+                    <p class="manage-title">Au départ (MS1)</p>
+                    <input type="checkbox" name="randomMS1" id="randomMS1" />
+                  </div>
+                  <div class="col-md-auto manage-col">
+                    <p class="manage-title">A chaque tour (MS2)</p>
+                    <input type="checkbox" name="randomMS2" id="randomMS2" />
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-md-auto">
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <h4 class="manage-title">Jeu</h4>
+                    <select id="game-select" name="gameName" class="form-control">
+                      <option value="">Choisissez un jeu</option>
+                      <optgroup label="Web">
+                        <% for(let i = 0; i < games.length; i++) { %> <% if(games[i].gameContext == "web"){ %>
+                        <option value="<%= games[i].gameName %>"><%= games[i].gameName %></option>
+                        <% } %> <% } %>
+                      </optgroup>
+                      <optgroup label="Local">
+                        <% for(let i = 0; i < games.length; i++) { %> <% if(games[i].gameContext == "local"){ %>
+                        <option value="<%= games[i].gameName %>"><%= games[i].gameName %></option>
+                        <% } %> <% } %>
+                      </optgroup>
+                      <optgroup label="Démo">
+                        <% for(let i = 0; i < games.length; i++) { %> <% if(games[i].gameContext == "demo"){ %>
+                        <option value="<%= games[i].gameName %>"><%= games[i].gameName %></option>
+                        <% } %> <% } %>
+                      </optgroup>
+                      <optgroup label="Test">
+                        <% for(let i = 0; i < games.length; i++) { %> <% if(games[i].gameContext == "test"){ %>
+                        <option value="<%= games[i].gameName %>"><%= games[i].gameName %></option>
+                        <% } %> <% } %>
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  <div class="col-md-auto">
+                    <div class="group">
+                      <input type="number" name="numberPlayers" min="0" id="numberPlayers" required step="1" value="5" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>Nombre de joueurs : </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row justify-content-md-center">
+                  <div class="col col-lg-12 manage-title">
+                    <h4 class="manage-title">Contexte</h4>
+                    <div class="row manage-title">
+                      <div class="col col-lg-6 manage-title">
+                        <div class="radio">
+                          <input type="radio" value="web" name="gameContext" id="web" />
+                          Web
+                        </div>
+                        <div class="radio">
+                          <input type="radio" value="local" name="gameContext" id="local" required />
+                          Local
+                        </div>
+                      </div>
+                      <div class="col col-lg-6 manage-title">
+                        <div class="radio">
+                          <input type="radio" value="demo" name="gameContext" id="demo" />
+                          Démo
+                        </div>
+                        <div class="radio">
+                          <input type="radio" value="test" name="gameContext" id="test" required />
+                          Test
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <br />
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col col-lg-6 manage-col">
+                    <div class="group">
+                      <input type="number" name="numberRounds" id="numberRounds" required step="1" value="20" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>Nombre de tours :</label>
+                    </div>
+                  </div>
+                  <div class="col col-lg-6 manage-col">
+                    <div class="group">
+                      <input type="number" name="numberCellsOpenedPerRound" id="numberCellsOpenedPerRound" required step="1" value="3" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>Nombre de coups par tour : </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col col-lg-6">
+                    <div class="group">
+                      <input type="number" name="evaporation" id="evaporation" required min="1" max="1000" value="1000" step="any" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>Evaporation τ : </label>
+                    </div>
+                  </div>
+                  <div class="col col-lg-6">
+                    <h4 class="manage-title">Règles du jeu</h4>
+                    <select id="rulesSelect" name="rulesSelect" class="form-control" required>
+                      <option value="">Choisissez une règle</option>
+                      <% for(let i = 0; i < games.rules.length; i++) { %>
+                      <option value="<%= games.rules[i].ruleName %>"><%= games.rules[i].ruleName %></option>
+                      <% } %>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-auto">
+                <fieldset class="field">
+                  <legend class="field-legend">Robots</legend>
+                  <p><span id="gameBotsError"></span></p>
+                  <% for(let i = 0; i < games.bots.length; i++) { %>
+                  <div class="group">
+                    <p id="games-liste">
+                      <input type="number" value="" name="botsNumberList" min="0" max="10" step="1" required />
+                      <input type="hidden" name="botsNameList" value="<%= games.bots[i].botName %>" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label><%= games.bots[i].botName %> : </label>
+                    </p>
+                  </div>
+                  <% } %>
+                </fieldset>
+              </div>
+            </div>
+            <div class="row manage-col">
+              <div class="col">
+                <button class="stigmer-btn checkWebBot" type="submit" name="gamesButton" value="create" id="createGame">Créer</button>
+                <button class="stigmer-btn actionConf checkWebBot" type="submit" name="gamesButton" value="update" id="updateGame">
+                  Modifier
+                </button>
+                <button class="stigmer-btn actionConf" type="submit" name="gamesButton" value="delete" id="deleteGame">Effacer</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // check if the number of bots is compatible with the params of the game
+        $("[name = 'botsNumberList'],#numberPlayers").change(function () {
+          let maxPlayer = parseInt($("#numberPlayers").val());
+          let context = $("input[name=gameContext]:checked").val();
+          let allBots = botCounting();
+          if ((context == "web" && allBots < maxPlayer - 1) || (context == "test" && allBots < maxPlayer)) {
+            $("#gameBotsError").show().text("PAS ASSEZ DE BOTS !");
+          } else if ((allBots > maxPlayer - 1 && context !== "test") || (allBots > maxPlayer && context === "test")) {
+            $("#gameBotsError").show().text("TROP DE BOTS !");
+          } else {
+            $("#gameBotsError").hide();
+          }
+        });
+
+        $("#deleteGame").on("click", () => {
+          $('[name="botsNumberList"]').attr("required", false);
+        });
+
+        // Prevent submitting a web game with the wrong bot count
+        $(".checkWebBot").on("click", (e) => {
+          let maxPlayer = parseInt($("#numberPlayers").val());
+          let context = $("input[name=gameContext]:checked").val();
+          let allBots = botCounting();
+          if (context === "web" && allBots !== maxPlayer - 1) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("Un jeu web doit contenir (Nombre de joueur(s) - 1) robot(s) !");
+          }
+        });
+
+        //click on game select
+        $(document).on("change", "#game-select", function () {
+          $("#gameBotsError").hide();
+          let gameName = $("#game-select").val();
+
+          if (gameName != "") {
+            //XHR request to /games/gameValue
+            $.ajax({
+              method: "POST",
+              url: "games/gameValue",
+              data: {
+                gameName: gameName,
+              },
+            }).done(function (game) {
+              switch (game.gameContext) {
+                case "web":
+                  $("#web").prop("checked", true);
+                  break;
+                case "local":
+                  $("#local").prop("checked", true);
+                  break;
+                case "demo":
+                  $("#demo").prop("checked", true);
+                  break;
+                case "test":
+                  $("#test").prop("checked", true);
+                  break;
+                default:
+                  break;
+              }
+              $("#altGameName").val(game.altGameName);
+              $("#numberRounds").val(game.numberRounds);
+              $("#numberCellsOpenedPerRound").val(game.numberCellsOpenedPerRound);
+              $("#numberPlayers").val(game.numberPlayers);
+              $("#mapSelect").val(game.mapSelect);
+              $("#rulesSelect").val(game.rulesSelect);
+              $("#evaporation").val(game.evaporation);
+              game.randomMS1 == "on" ? $("#randomMS1").prop("checked", true) : $("#randomMS1").prop("checked", false);
+              game.randomMS2 == "on" ? $("#randomMS2").prop("checked", true) : $("#randomMS2").prop("checked", false);
+              
+              let botsNameList = $("[name='botsNameList']");
+              let botsNumberList = $("[name='botsNumberList']");
+
+              for (let i = 0; i < botsNameList.length; i++) {
+                let index = null;
+                for (let j = 0; j < game.botsList.length; j++) {
+                  if (game.botsList[j].name === botsNameList[i].attributes.value.value) {
+                    index = j;
+                  } 
+                }
+                if (index === null) {
+                  botsNumberList[i].value = "0";
+                } else {
+                  botsNumberList[i].value = game.botsList[index].numberOfBots;
+                }
+              }
+
+              // Alert if there is any missing bot
+              let missingBot = "";
+              for (let j = 0; j < game.botsList.length; j++) {
+                if (game.botsList[j].numberOfBots !== "0") {
+                  console.log("hey");
+                  let isBotThere = false;
+                  for (let i = 0; i < botsNameList.length; i++) {
+                    if (game.botsList[j].name === botsNameList[i].attributes.value.value) {
+                      isBotThere = true;
+                    } 
+                  }
+                  if (!isBotThere) {
+                    missingBot += "\n  - " + game.botsList[j].name;
+                  }
+                }
+              }
+              if (missingBot != "") {
+                alert(
+                  "Vous tentez d'importer un jeu qui contient trop de robots !\nVeuillez créer un(des) robot(s) :" + missingBot + "\npour pouvoir effectuer cette action !"
+                );
+              }
+            });
+          } else {
+            //reset displayed values
+            $("#web").prop("checked", false);
+            $("#local").prop("checked", false);
+            $("#numberRounds").val("");
+            $("#numberCellsOpenedPerRound").val("");
+            $("#numberPlayers").val("");
+            $("#mapSelect").val("");
+            $("#rulesSelect").val("");
+            $("#oneRoundMemory").attr("checked", false);
+            let liste = document.getElementsByName("botsNumberList");
+            let i = 0;
+            liste.forEach((element) => {
+              element.value = "";
+              i++;
+            });
+          }
+        });
+      });
+
+      function botCounting() {
+        let botsNumberList = document.getElementsByName("botsNumberList");
+        let allBots = 0;
+        let nbBots = 0;
+        botsNumberList.forEach((element) => {
+          if (element.value == "") {
+            nbBots = 0;
+          } else {
+            nbBots = parseInt(element.value);
+          }
+          allBots += nbBots;
+        });
+        return allBots;
+      }
+    </script>
+  </body>
+</html>

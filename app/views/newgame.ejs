@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <input type="hidden" value="<%= env %>" id="nodeEnv" />
+    <div class="main-overlay">
+      <div class="stigmer-spinner"></div>
+      <h1></h1>
+    </div>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container">
+          <h2 class="connexion-title">Nouvelle partie</h2>
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto map-textarea">
+              <a href="local"><img class="gameImg" title="local" src="images/game.png " alt="game" /></a>
+            </div>
+          </div>
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto map-textarea">
+              <fieldset class="field">
+                <legend class="field-legend">Local</legend>
+                <select id="gameSelectLocal" name="gameName" class="form-control">
+                  <option value="">Choisissez un jeu</option>
+                  <% for(let i=0; i < games.length; i++) { %> <% if(games[i].gameContext=="local" ){ %>
+                  <option value="<%= games[i].gameName %>"><%= games[i].altGameName %></option>
+                  <% } %> <% } %>
+                </select>
+                <div class="group map-textarea">
+                  <input
+                    type="number"
+                    name="currentSessionNumber"
+                    id="currentSessionNumber"
+                    step="1"
+                    min="1"
+                    value=""
+                  />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Numéro de session :</label>
+                </div>
+                <div class="group map-textarea">
+                  <input
+                    type="number"
+                    name="humanPlayerNumber"
+                    id="humanPlayerNumber"
+                    step="1"
+                    onchange="constructPlayersSelect()"
+                    min="1"
+                    value="10"
+                  />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Nombre de joueurs total :</label>
+                </div>
+                <div class="map-textarea">
+                  <select id="localMultipleSelect" multiple="multiple" class="form-control">
+                    <option value="" disabled>Sélection : Ctrl + click</option>
+                  </select>
+                </div>
+                <div>
+                  <span id="localAlert" class="mb-3"></span>
+                  <button class="sendLocal stigmer-btn mt-3" type="button" id="newGame" value="newGame">
+                    Créer une nouvelle partie
+                  </button>
+                  <button
+                    class="sendLocal stigmer-btn mt-3"
+                    type="button"
+                    id="newGameWithSameMap"
+                    value="newGameWithSameMap"
+                  >
+                    Créer une nouvelle partie avec la carte précedente
+                  </button>
+                </div>
+                <div>
+                  <h6 class="manage-title">Jeu synchronisé</h6>
+                  <input class="check-rules" type="checkbox" id="synchronised" name="synchronised"/>
+                </div>
+                <div>
+                  <h6 class="manage-title">5p vs 5p</h6>
+                  <input class="check-rules" type="checkbox" id="versus" name="versus" />
+                </div>
+                <div>
+                  <h6 class="manage-title">Simulation</h6>
+                  <input class="check-rules" type="checkbox" id="simulation" name="simulation" />
+                </div>
+              </fieldset>
+            </div>
+            <div class="col-md-auto map-textarea"><div id="gameInfo"></div></div>
+
+            <div class="col-md-auto map-textarea">
+              <fieldset class="field">
+                <legend class="field-legend">Web</legend>
+                <p>Data sur disque : <%= filesNumber %></p>
+                <select id="gameSelectWeb" class="form-control">
+                  <option value="">Choisissez un jeu</option>
+
+                  <% for(let i=0; i < games.length; i++) { %> <% if(games[i].gameContext=="web" ){ %>
+                  <option value="<%= games[i].gameName %>"><%= games[i].altGameName %></option>
+                  <% } %> <% } %>
+                </select>
+
+                <button class="stigmer-btn" type="button" id="addOneGameList">Ajouter des jeux Web</button>
+                <button class="stigmer-btn" type="button" id="clearGameList">Supprimer la liste</button>
+                <h6 class="manage-title">Tirage aléatoire</h6>
+                <% if (session) { %> <% if(session.randomGame=="true" ){ %>
+                <input class="check-rules" type="checkbox" id="randomGame" name="randomGame" checked />
+                <% } else { %>
+                <input class="check-rules" type="checkbox" id="randomGame" name="randomGame" />
+                <% } %> <% } else { %>
+                <input class="check-rules" type="checkbox" id="randomGame" name="randomGame" />
+                <% } %>
+                <div class="map-textarea">
+                  <select disabled id="webMultipleSelect" multiple="multiple" class="form-control">
+                    <option value="">Séquence de jeux web</option>
+                    <% if (session) { %> <% for(let i=0; i < session.session.length; i++) { %>
+
+                    <option name="webGame"><%= session.session[i] %></option>
+
+                    <% } %> <% } %>
+                  </select>
+                </div>
+                <button class="stigmer-btn" type="button" id="webGameList">Ajouter la séquence</button>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto map-textarea">
+              <fieldset class="field">
+                <legend class="field-legend">Test</legend>
+
+                <select id="gameSelectTest" class="form-control margin-bot-small">
+                  <option value="">Choisissez un jeu</option>
+                  <% for(let i=0; i < games.length; i++) { %> <% if(games[i].gameContext=="test" ){ %>
+                  <option value="<%= games[i].gameName %>"><%= games[i].gameName %></option>
+                  <% } %> <% } %>
+                </select>
+
+                <div class="group map-textarea margin-bot-small">
+                  <input type="number" name="testsLength" id="testsLength" step="1" required min="1" value="2" />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Nombre de tests : </label>
+                </div>
+
+                <button class="stigmer-btn" type="button" id="launchTest">Lancer un test</button>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="socket.io/socket.io.js"></script>
+
+    <script>
+      let allBotsLocal;
+      let totalNumberPlayersLocal;
+      let nodeEnv = $("#nodeEnv").val();
+      let socket;
+      let currentGame = {};
+      if (nodeEnv === "development") {
+        socket = io();
+      } else {
+        socket = io({ path: "/Stigmer/socket.io" });
+      }
+
+      $(document).ready(function () {
+        constructPlayersSelect();
+
+        // Add web sequence to the list
+        $(document).on("click", "#addOneGameList", function () {
+          let gameToAdd = $("#gameSelectWeb").val();
+          if (gameToAdd) {
+            if ($("#webMultipleSelect > option").attr("selected") !== "selected") {
+              $("#webMultipleSelect > option").remove();
+            }
+            $("#webMultipleSelect").append('<option selected name="webGame">' + gameToAdd + "</option>");
+          }
+        });
+
+        // Add a local game
+        $(document).on("click", ".sendLocal", function () {
+          //check fields of the local form
+          if (checkFields(this.value)) {
+            submitLocalGameForm(this.value);
+          }
+        });
+
+        // Add web sequence to the DB
+        $(document).on("click", "#webGameList", function () {
+          let randomGame = $("#randomGame").is(":checked") ? true : false;
+
+          let webMultipleSelect = $("#webMultipleSelect").val();
+
+          if (webMultipleSelect.length !== 0) {
+            $.ajax({
+              type: "POST",
+              url: "newgame/addWebGameList",
+              data: {
+                web: JSON.stringify({
+                  webMultipleSelect,
+                }),
+                randomGame: randomGame,
+              },
+            }).done(function () {
+              location.reload();
+            });
+          } else {
+            alert("Vous essayez d'enregistrer une séquence vide !");
+          }
+        });
+
+        // Launch test bot vs bot
+        $(document).on("click", "#launchTest", function () {
+          let testGameName = $("#gameSelectTest").val();
+          let testsLength = $("#testsLength").val();
+          if (testGameName) {
+            $(".main-overlay").fadeIn();
+            $.ajax({
+              type: "POST",
+              url: "web/playWebGames",
+              data: {
+                testGameName: testGameName,
+                sessionLength: testsLength,
+                test: true,
+              },
+            }).done(function (data) {
+              socket.emit("new game", data);
+            });
+          }
+        });
+
+        // Remove the web list
+        $(document).on("click", "#clearGameList", function () {
+          $('option[name="webGame"]').remove();
+          $("#randomGame").attr("checked", false);
+        });
+
+        // Local game details
+        $(document).on("change", "#gameSelectLocal", function () {
+          $("#gameInfoBlock").remove();
+          $("#gameSelectWeb").val("");
+          let gameName = $("#gameSelectLocal").val();
+          gamesXHR(gameName);
+        });
+
+        // Web game details
+        $(document).on("change", "#gameSelectWeb", function () {
+          $("#gameInfoBlock").remove();
+          $("#gameSelectLocal").val("");
+          let gameName = $("#gameSelectWeb").val();
+          gamesXHR(gameName);
+        });
+
+        // Do a series of test games
+        socket.on("test", function (dataFromPreviousTest) {
+          testGameName = $("#gameSelectTest").val();
+          testsLength = $("#testsLength").val();
+          $.ajax({
+            type: "POST",
+            url: "web/playWebGames",
+            data: {
+              testGameName: testGameName,
+              sessionLength: testsLength,
+              test: true,
+            },
+          }).done(function (data) {
+            let testData = {};
+            testData.gameId = data.gameid;
+            testData.currentTestIndex = dataFromPreviousTest.currentTestIndex;
+            testData.firstGameId = dataFromPreviousTest.firstGameId;
+            data.testData = testData;
+            $(".main-overlay>h1").text(dataFromPreviousTest.currentTestIndex + "/" + testsLength);
+            socket.emit("new game", data);
+          });
+        });
+
+        socket.on("new game available test", function (data) {
+          socket.emit("login", data);
+        });
+
+        socket.on("end test", function () {
+          $(".main-overlay").fadeOut();
+        });
+
+        socket.on("new game created", function () {
+          $(".main-overlay").fadeOut();
+        });
+      });
+
+      // Construct players list
+      function constructPlayersSelect() {
+        let localMultipleSelect = $("#localMultipleSelect");
+        let option = document.createElement("option");
+        $("option").remove(":contains('J')");
+        for (let i = 1; i <= $("#humanPlayerNumber").val(); i++) {
+          option = document.createElement("option");
+          localMultipleSelect.append(option);
+          option.setAttribute("value", "J" + i);
+          option.setAttribute("class", "localMultipleOptions");
+          let t = document.createTextNode("J" + i);
+          option.append(t);
+        }
+      }
+
+      // XHR request to get game's details
+      function gamesXHR(gameName) {
+        if ($("#gameSelectWeb").val() == "" && $("#gameSelectLocal").val() == "") {
+          $("#gameInfo").hide();
+        }
+        if (gameName != "") {
+          //XHR request to /games/gameValue to get DB values
+          $.ajax({
+            method: "POST",
+            url: "games/gameValue",
+            data: {
+              gameName: gameName,
+            },
+          }).done(function (game) {
+            currentGame = game;
+            constructGameInfoList(game);
+          });
+        }
+      }
+
+      // Game details
+      function constructGameInfoList(game) {
+        let allBots = 0;
+        totalNumberPlayersLocal = game.numberPlayers;
+        let MS1 = "";
+        let MS2 = "";
+        game.randomMS1 === "on" ? (MS1 = "ON") : (MS1 = "OFF");
+        game.randomMS2 === "on" ? (MS2 = "ON") : (MS2 = "OFF");
+        game.botsList.forEach((element) => {
+          allBots += parseInt(element.numberOfBots);
+        });
+        allBotsLocal = allBots;
+        $("#gameInfo").show().append('<div id="gameInfoBlock"><h3 class="text-center">Détail du jeu :</h3>');
+        $("#gameInfoBlock").append('<ul id="gameInfoList"></ul>');
+        $("#gameInfoList").append("<li>Contexte du jeu : " + game.gameContext + "</li>");
+        $("#gameInfoList").append("<li>Règle du jeu : " + game.rulesSelect + "</li>");
+        $("#gameInfoList").append("<li>Nombre total de joueur(s) : " + game.numberPlayers + "</li>");
+        $("#gameInfoList").append("<li>Nombre de robot(s) : " + allBots + "</li>");
+        game.botsList.forEach((element) => {
+          if (parseInt(element.numberOfBots) > 0) {
+            $("#gameInfoList").append("<li>" + element.name + " : " + element.numberOfBots + "</li>");
+          }
+        });
+        $("#gameInfoList").append("<li>Nombre de tour(s) : " + game.numberRounds + "</li>");
+        $("#gameInfoList").append("<li>Nombre de coup(s) par tour(s) : " + game.numberCellsOpenedPerRound + "</li>");
+        $("#gameInfoList").append("<li>Evaporation τ : " + game.evaporation + "</li>");
+        $("#gameInfoList").append("<li>Type de carte : " + game.mapSelect + "</li>");
+        $("#gameInfoList").append("<li>MS1 : " + MS1 + "</li>");
+        $("#gameInfoList").append("<li>MS2 : " + MS2 + "</li></ul></div>");
+      }
+
+      // Click on submit button
+      function submitLocalGameForm(button) {
+        $(".main-overlay").fadeIn();
+        let simulation = $("#simulation").is(":checked") ? true : false;
+        let synchronised = $("#synchronised").is(":checked") ? true : false;
+        let gameName = $("#gameSelectLocal").val();
+        let localMultipleSelect = $("#localMultipleSelect").val();
+        let humanPlayerNumber = $("#humanPlayerNumber").val();
+        let currentSessionNumber = $("#currentSessionNumber").val();
+        let versus = $("#versus").prop("checked");
+        let buttonEventOrig = button;
+        //XHR request to /newgame/addGame
+        $.ajax({
+          type: "POST",
+          url: "newgame/addGame",
+          data: {
+            synchronised: synchronised,
+            simulation: simulation,
+            versus: versus,
+            buttonEventOrig: buttonEventOrig,
+            humanPlayerNumber: humanPlayerNumber,
+            currentSessionNumber: currentSessionNumber,
+            gameName: gameName,
+            local: JSON.stringify({
+              localMultipleSelect,
+            }),
+          },
+        }).done(function (data) {
+          //remove element from the list
+          localMultipleSelect.forEach((element) => {
+            optionToRemove = ":selected('" + element + "')";
+            $(".localMultipleOptions").remove(optionToRemove);
+          });
+          socket.emit("new game", data);
+        });
+      }
+
+      function checkFields(button) {
+        let check = true;
+        let humanPlayerNumberLocal = $("#localMultipleSelect").val().length;
+        let gameSelectLocal = $("#gameSelectLocal").val();
+        let currentSessionNumber = $("#currentSessionNumber").val();
+        let localMultipleSelect = $("#localMultipleSelect").val();
+        if (humanPlayerNumberLocal + allBotsLocal !== totalNumberPlayersLocal && $("#gameSelectLocal").val() !== "") {
+          check = false;
+        }
+        if (gameSelectLocal === "" || currentSessionNumber === "") {
+          check = false;
+        }
+        if (localMultipleSelect.length === 0) {
+          check = false;
+        }
+        if (button === "newGameWithSameMap" && currentGame.randomMS2 === "on") {
+          check = false;
+        }
+        if (!check) {
+          $("#localAlert").text("Erreur !").show();
+          setTimeout(function () {
+            $("#localAlert").hide();
+          }, 3000);
+        }
+        return check;
+      }
+    </script>
+  </body>
+</html>

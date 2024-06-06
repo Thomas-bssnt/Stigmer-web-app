@@ -1,0 +1,11 @@
+<header>
+  <div class="row justify-content-md-center">
+    <div class="col-md-auto">
+      <% if(locals.user){ %>Vous êtes connecté(e) en tant que : <%= locals.user.id %>
+      <a href="logout"><img id="arrow_logout" title="Se déconnecter" src="images/logout.png" alt="logout" /></a>
+      <% } %> <% if(locals.user.id === "admin"){ %>
+      <a href="newgame"><img class="home" title="Nouvelle partie" src="images/home.png" alt="home" /></a>
+      <% } %>
+    </div>
+  </div>
+</header>

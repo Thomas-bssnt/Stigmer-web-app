@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container">
+          <h1 class="game-title">Stigmer</h1>
+          <h2 class="connexion-title">Gestion des règles</h2>
+
+          <form method="POST" action="rules">
+            <div class="row justify-content-md-center margin-top">
+              <div class="col col-lg-3 map-textarea">
+                <h4 class="manage-title">Règles en mémoire</h4>
+
+                <select id="rules-select" class="form-control" name="ruleNameSelect">
+                  <option value="">Choisissez une régle</option>
+                  <% for(let i = 0; i < rules.length; i++) { %>
+                  <option value="<%= rules[i].ruleName %>"><%= rules[i].ruleName %></option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+
+            <div class="row justify-content-md-center">
+              <div class="col col-lg-4 check-table margin-top-small">
+                <div class="group">
+                  <input type="number" id="maxNumberOfStarsPerRound" name="maxNumberOfStarsPerRound" required />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>maxNumberOfStarsPerRound</label>
+                </div>
+              </div>
+
+              <div class="col col-lg-4 check-table margin-top-small">
+                <div class="group">
+                  <input type="number" id="coefRemainingStars" name="coefRemainingStars" required />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>coefRemainingStars</label>
+                </div>
+              </div>
+            </div>
+            <div class="row justify-content-md-center map-textarea">
+              <div class="col col-lg-4">
+                <h4 class="manage-title">coefValueTimesStars</h4>
+                <input class="check-rules" type="checkbox" id="coefValueTimesStars" name="coefValueTimesStars" />
+              </div>
+
+              <div class="col col-lg-4">
+                <h4 class="manage-title">coefValue</h4>
+                <input class="check-rules" type="checkbox" id="coefValue" name="coefValue" />
+              </div>
+            </div>
+
+            <div class="row map-textarea">
+              <div class="col">
+                <button class="stigmer-btn" type="submit" name="rulesButton" value="create" id="createRule">
+                  Créer
+                </button>
+                <button class="stigmer-btn actionConf" type="submit" name="rulesButton" value="update" id="update">
+                  Modifier
+                </button>
+                <button class="stigmer-btn actionConf" type="submit" name="rulesButton" value="delete" id="delete">
+                  Effacer
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function () {
+        $(document).on("change", "#rules-select", function () {
+          let ruleName = $("#rules-select").val();
+
+          if (ruleName != "") {
+            // XHR request to /rules/ruleValue
+            // Rules on DB
+            $.ajax({
+              method: "POST",
+              url: "rules/ruleValue",
+              data: {
+                ruleName: ruleName,
+              },
+            }).done(function (rule) {
+              $("#ruleName").val(rule.ruleName);
+              $("#maxNumberOfStarsPerRound").val(rule.maxNumberOfStarsPerRound);
+              $("#coefRemainingStars").val(rule.coefRemainingStars);
+              rule.coefValueTimesStars !== null
+                ? $("#coefValueTimesStars").attr("checked", true)
+                : $("#coefValueTimesStars").attr("checked", false);
+              rule.coefValue !== null ? $("#coefValue").attr("checked", true) : $("#coefValue").attr("checked", false);
+            });
+          } else {
+            // Reset values
+            $("#ruleName").val("");
+            $("#maxNumberOfStarsPerRound").val("");
+            $("#coefRemainingStars").val("");
+            $("#coefValueTimesStars").attr("checked", false);
+            $("#coefValue").attr("checked", false);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

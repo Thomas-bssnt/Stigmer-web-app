@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/headweb.ejs'); %>
+
+  <body>
+    <input type="hidden" value="<%= env %>" id="nodeEnv" />
+    <header>
+      <div class="row align-items-center">
+        <div class="col-md-6 offset-md-3">
+          <div class="flag">
+            <button class="stigmer-btn showRules">Afficher les règles</button>
+            <a href="en"><img title="English" class="language" src="../images/flag_uk.png " alt="uk" /></a>
+            <a href="fr"><img title="Français" class="language" src="../images/flag_fr.png" alt="fr" /></a>
+            <button class="stigmer-btn contact">Contact</button>
+          </div>
+        </div>
+        <div class="col-md-2 offset-md-1">
+          <img class="cnrsLogo" src="../images/logosCNRS-UPS.png" alt="CNRS/UPS" />
+        </div>
+      </div>
+    </header>
+    <div class="main-overlay">
+      <div class="stigmer-spinner"></div>
+      <h2>Attendez les autres joueurs !</h2>
+    </div>
+    <div class="main-overlay-turn">
+      <div class="stigmer-spinner"></div>
+      <h1></h1>
+      <h2></h2>
+    </div>
+    <div class="web-rules">
+      <div class="row justify-content-md-center">
+        <div class="col-md-auto manage-title">
+          <div class="rules-color">
+            <div class="exp-info">
+              <p>
+                Bienvenue sur le site d’expériences en ligne sur les comportements collectifs humains organisées par le
+                <a href="https://crca.cbi-toulouse.fr"> Centre de Recherches sur la Cognition Animale</a>, le
+                <a href="https://www.lpt.ups-tlse.fr">Laboratoire de Physique Théorique de Toulouse</a> et
+                <a href="https://www.tse-fr.eu/fr">Toulouse School of Economics</a>.
+              </p>
+
+              <h2>Objectif des expériences</h2>
+              <p>
+                L’objectif est d’étudier comment s’opèrent les choix individuels et collectifs dans des groupes humains. Les expériences auxquelles
+                vous allez participer permettent à des chercheurs en éthologie, économie et physique de la société de comprendre l’influence de
+                diverses formes de traces digitales dans les processus décisionnels et de tester leurs modèles.
+              </p>
+
+              <h2>Conditions de participation</h2>
+              <p>
+                Ces expériences sont ouvertes à tous les participants majeurs. Au cours de l'expérience, chaque participant doit respecter les règles
+                telles qu'elles sont énoncées dans les instructions de l’expérimentateur. Votre participation est volontaire. Si vous décidez de
+                participer, vous restez libre de vous retirer de l'expérience à n'importe quel moment. La participation à une expérience ne vous
+                expose pas à des risques physiques ou financiers. Les données obtenues seront traitées de manière totalement anonyme et aucun autre
+                renseignement ne sera dévoilé qui puisse révéler votre identité. Le strict anonymat rend impossible la rectification ou la suppression
+                des informations vous concernant à l’issue de votre participation à l’expérience. Toutes les données seront conservées dans un endroit
+                sécurisé et seuls les responsables scientifiques y auront accès.
+              </p>
+
+              <h2>Description du jeu</h2>
+              <p>
+                L'expérience prend la forme d'un jeu dans lequel votre objectif est de découvrir dans un tableau de nombres, la
+                <span>case de valeur maximum</span> (ou les cases de grande valeur), tout en <span>maximisant votre score</span>.
+              </p>
+              <p>
+                Le jeu se divise en <span>20 tours</span> et se joue par groupes de <span>5 joueurs</span>. Le tableau est constitué de
+                <span>225 cases</span> (15 ✕ 15) contenant chacune une valeur cachée. Ces valeurs sont des nombres compris
+                <span>entre 0 et 99</span> qui sont répartis aléatoirement dans le tableau.
+              </p>
+              <p class="no-space-after">Dans chaque tour, chaque joueur devra indépendamment <span>ouvrir et noter 3 cases</span> différentes.</p>
+              <ul class="no-space-after">
+                <li>L'ouverture d'une case permet d'en découvrir sa valeur et se fait en cliquant sur la case.</li>
+                <li>La notation se fait en y déposant entre <span>0 et 5 étoiles</span>.</li>
+              </ul>
+              <p>À la fin de chaque tour, les couleurs des cases sont mises à jour.</p>
+              <p>
+                La couleur d'une case est liée au <span>pourcentage d'étoiles</span> déposées dans la case par tous les joueurs depuis le début du
+                jeu. Les cases qui n’ont pas ou très peu d’étoiles resteront <span>blanches</span>, celles sur lesquelles auront été déposé beaucoup
+                d’étoiles seront presque <span>noires</span> et les cases intermédiaires auront différentes <span>teintes de rouges</span>. Donc plus
+                vous déposerez d’étoiles dans une case plus elle va devenir foncée.
+              </p>
+              <p class="no-space-after">
+                Pour chaque jeu, votre score commence à 0 et augmente de la valeur des cases que vous visitez. Votre score dépend seulement des cases
+                visitées et est indépendant du nombre d'étoiles déposées. Par exemple si au cours d’un tour vous découvrez :
+              </p>
+              <ul class="no-space-after">
+                <li>
+                  une 1ère case de valeur <span class="orange">78</span> et y déposez <span>4</span>
+                  étoiles,
+                </li>
+                <li>
+                  une 2ème case de valeur <span class="orange">11</span> et y déposez <span>0</span>
+                  étoile,
+                </li>
+                <li>
+                  une 3ème case de valeur <span class="orange">38</span> et y déposez <span>3</span>
+                  étoiles,
+                </li>
+              </ul>
+              <p>
+                votre score pour ce tour sera de <span class="orange">78</span> + <span class="orange">11</span> + <span class="orange">38</span> =
+                127.
+              </p>
+              <button class="stigmer-btn margin-bot-small" type="button" id="secondRuleDemo" value="D_R2_MD1_0B_2">Faire une démo</button>
+              <button class="stigmer-btn margin-bot-small hide-rules" type="button">Aller au jeu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container border-web">
+      <div class="row justify-content-md-center">
+        <div class="col-md-auto manage-title">
+          <div class="manage-title">
+            <form id="playerInfoForm">
+              <fieldset class="field">
+                <legend class="field-legend">Info du joueur</legend>
+                <h5 class="margin-top-small">Genre</h5>
+                <select id="playerGender" name="playerGender" class="form-control" required>
+                  <option value="">Choisissez votre genre...</option>
+                  <option value="female">Femme</option>
+                  <option value="male">Homme</option>
+                  <option value="nc">Je le garde pour moi</option>
+                </select>
+                <h5 class="margin-top-small">Age</h5>
+                <select id="playerAge" name="playerAge" class="form-control" required>
+                  <option value="">Choisissez votre âge...</option>
+                  <option value="20">18-24 ans</option>
+                  <option value="25">25-29 ans</option>
+                  <option value="30">30-34 ans</option>
+                  <option value="35">35-39 ans</option>
+                  <option value="40">40-44 ans</option>
+                  <option value="45">45-49 ans</option>
+                  <option value="50">50-54 ans</option>
+                  <option value="55">55-60 ans</option>
+                  <option value="60">&gt; 60 ans</option>
+                  <option value="0">Je le garde pour moi</option>
+                </select>
+              </fieldset>
+              <div class="row justify-content-md-center">
+                <div class="col-md-auto">
+                  <button class="stigmer-btn margin-bot-small margin-top-small" type="submit" id="playWebGamesFr">Jouer</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="game stigmer-page">
+      <div class="stigmer-menu">
+        <ul>
+          <li class="logout">Quitter le jeu</li>
+        </ul>
+      </div>
+      <div class="stigmer-page-wrapper">
+        <div class="timeout manage-title">Vous n'avez plus de temps, jouez !</div>
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto">
+            <div class="in-game-rules">
+              <div id="in-game-rule1">
+                <h3>Règle 1</h3>
+                <p>
+                  Vous pouvez déposer de 0 à 5 étoiles dans chacune des 3 cases. Votre <span>score reste nul</span> et ne dépend pas de vos actions.
+                </p>
+              </div>
+              <div id="in-game-rule2">
+                <h3>Règle<!-- 2--></h3>
+
+                <p>
+                  Vous pouvez déposer de 0 à 5 étoiles dans chacune des 3 cases. Votre score augmente à chaque fois de la
+                  <span>valeur de la case découverte</span>.
+                </p>
+              </div>
+              <div id="in-game-rule3">
+                <h3>Règle 3</h3>
+                <p>
+                  Vous pouvez déposer de 0 à 5 étoiles dans chacune des 3 cases, mais vous ne possédez que
+                  <span>8 étoiles maximum à répartir entre les 3 cases par tour </span> Votre score augmente à chaque fois de la
+                  <span>valeur de la case découverte</span>.
+                </p>
+              </div>
+              <div id="in-game-rule4">
+                <h3>Règle 4</h3>
+                <p>
+                  Vous pouvez déposer de 0 à 5 étoiles dans chacune des 3 cases, mais vous ne possédez que
+                  <span>8 étoiles maximum à répartir entre les 3 cases par tour</span> Votre score augmente à chaque fois de
+                  <span>la valeur de la case découverte multiplié par le nombre d’étoiles misées </span>dans la case et du
+                  <span>nombre d’étoiles restantes à la fin du tour x 50</span>.
+                </p>
+              </div>
+              <span class="in-game-shuffle"></span>
+            </div>
+            <div class="row justify-content-md-center">
+              <div class="col-md-auto">
+                <div class="container-info">
+                  <div class="wrapper-timer">Temps restant : <span class="timer">-</span></div>
+                  <div class="wrapper-stigmer-chip wrapper-nb-points">Score <span class="stigmer-chip nb-points">0</span></div>
+                  <div class="wrapper-stigmer-chip wrapper-nb-turn">Tour <span class="stigmer-chip nb-turn">-</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="rules-3-4">
+              <div class="row justify-content-md-center">
+                <div class="col-md-auto">
+                  <div class="container-info">
+                    <div class="wrapper-stigmer-chip wrapper-nb-case">Cases restantes<span class="stigmer-chip nb-case">-</span></div>
+                    <div class="wrapper-stigmer-chip wrapper-nb-coin">Etoiles restantes<span class="stigmer-chip nb-coin">-</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="matrix">
+              <p class="player-playing"></p>
+            </div>
+            <div class="card">
+              <p>Liste des joueurs :</p>
+              <div class="leaderBoard justify-content-md-center"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../socket.io/socket.io.js"></script>
+    <script>
+      let nodeEnv = $("#nodeEnv").val();
+      let socket;
+      if (nodeEnv === "development") {
+        socket = io();
+      } else {
+        socket = io({ path: "/Stigmer/socket.io" });
+      }
+      let currentGame;
+      let score = 0;
+      let scoreReveal = 0;
+      let clickedCell = {};
+      let cellRest = 0;
+      let starRest = 0;
+      let time = null;
+      let timer;
+      let pseudo;
+      let currentScoreTurn = 0;
+      let currentGameIndex;
+      let sessionLength;
+      let showScore;
+      let randomList = [];
+      //Document Ready
+      $(document).ready(function () {
+        //get the contact email
+        $(document).on("click", ".contact", function () {
+          $.ajax({
+            type: "POST",
+            url: "../web/contact",
+          }).done(function (data) {
+            window.open("mailto:" + data.contact + "?subject=Stigmer Game");
+          });
+        });
+
+        //hide rules
+        $(document).on("click", ".hide-rules", function () {
+          $(".web-rules").hide();
+        });
+
+        //show rules
+        $(document).on("click", ".showRules", function () {
+          $(".web-rules").toggle();
+        });
+
+        //end demo with logout
+        $(document).on("click", "#endDemo", function () {
+          socket.emit("logout", currentGame.gameContext);
+        });
+
+        //launch demo rule 1
+        $(document).on("click", "#firstRuleDemo", function (e) {
+          let demoGameName = $("#firstRuleDemo").val();
+          playDemoGame(e, demoGameName);
+        });
+
+        //launch demo rule 2
+        $(document).on("click", "#secondRuleDemo", function (e) {
+          let demoGameName = $("#secondRuleDemo").val();
+          playDemoGame(e, demoGameName);
+        });
+
+        //launch demo rule 3
+        $(document).on("click", "#thirdRuleDemo", function (e) {
+          let demoGameName = $("#thirdRuleDemo").val();
+          playDemoGame(e, demoGameName);
+        });
+
+        //launch demo rule 4
+        $(document).on("click", "#fourthRuleDemo", function (e) {
+          let demoGameName = $("#fourthRuleDemo").val();
+          playDemoGame(e, demoGameName);
+        });
+
+        //launch next game
+        $(document).on("click", "#nextWebGame", function (e) {
+          playWebGame(e);
+        });
+
+        //launch first game
+        $("#playerInfoForm").submit(function (e) {
+          playWebGame(e);
+        });
+
+        //emit event to socket "end round web"
+        $(document).on("click", ".select-clue div", function (e) {
+          $(".cell-active").addClass("alreadyclicked");
+          $(".cell-active").removeClass("cell-active");
+          //get the data value set in "reveal cell"
+          let clue = $(e.target).data("clue");
+          $(".select-clue").remove();
+          $(".cell-value").remove();
+          socket.emit("end round web", clickedCell, clue, scoreReveal, false, pseudo);
+        });
+
+        //emit event to socket "end round web"
+        $(document).on("click", ".select-clue-inv div", function (e) {
+          $(".cell-active").addClass("alreadyclicked");
+          $(".cell-active").removeClass("cell-active");
+          //get the data value set in "reveal cell"
+          let clue = $(e.target).data("clue");
+          $(".select-clue-inv").remove();
+          $(".cell-value").remove();
+          socket.emit("end round web", clickedCell, clue, scoreReveal, false, pseudo);
+        });
+
+        //logout
+        $(document).on("click", ".logout", function () {
+          socket.emit("logout", currentGame.gameContext);
+        });
+
+        /**
+         * join game
+         * @param {game} game
+         * @param {colorGame} colorGame
+         * @param {player} player
+         * @param {player} playerPlaying
+         */
+        socket.on("join game", function (game, colorGame, player, playerPlaying) {
+          $(".timeout").removeClass("active");
+          currentGame = game;
+          if (currentGame.rule < 3) {
+            $(".rules-3-4").hide();
+          }
+          time = currentGame.time;
+          //construct the table with possibility to interact with the map
+          constructTable(game, true);
+
+          $(".game").addClass("active-game");
+          updateInfo(player);
+          colorGame.leaderBoard = game.leaderBoard;
+          colorGame.round = game.round;
+          $(".in-game-shuffle").hide();
+          if (game.randomMS2 === "on") {
+            $(".in-game-shuffle").show().text("Attention ! La Carte est mélangée à chaque tour.");
+          }
+          if (game.gameContext === "web" || "demo") {
+            $(".in-game-rules").show();
+
+            switch (game.rule) {
+              case 1:
+                $("#in-game-rule1").show();
+                break;
+              case 2:
+                $("#in-game-rule2").show();
+                break;
+              case 3:
+                $("#in-game-rule3").show();
+                break;
+              case 4:
+                $("#in-game-rule4").show();
+                break;
+
+              default:
+                break;
+            }
+          }
+
+          //update the map colors
+          updateTableColor(colorGame);
+          $(".rule-name").html("Règle : " + game.rule);
+          $(".nb-points").html(player.score);
+          //set player pseudo to player 1
+          $(".pseudo").html("Player 1");
+          //format the game name to get the rule number
+          let ruleNumber = game.rule;
+          $(".nb-turn").html(game.round + "/" + game.nbRound);
+          $(".nb-cell").html(player.nbCells);
+          $(".nb-coin").html(player.nbStar);
+          $("#matrix table").addClass("myturn");
+
+          if (game.gameContext !== "demo") {
+            //delay time for next games
+            let delay = Math.floor(Math.random() * (5000 - 1000)) + 1000;
+            joinRuleMessage(game, delay, ruleNumber);
+          }
+          if (game.gameContext === "demo") {
+            setTimer(time);
+            $(".container-info").css("margin-top", "80px");
+            $("#matrix").css("width", "200px");
+          }
+        });
+        /**
+         * join the rule message to the waiting message at the start of a new game
+         * @param {game} game
+         * @param {number} delay
+         * @param {number} ruleNumber
+         */
+        function joinRuleMessage(game, delay, ruleNumber) {
+          //add rule title
+          //$(".main-overlay").append(`<H1 id='joinGameAdd'>Règle : ${ruleNumber}</H1>`);
+          $(".main-overlay").fadeIn();
+          $(".rep-text").html("Attendez les autres joueurs");
+          //end delay
+          setTimeout(function () {
+            $(".main-overlay").fadeOut();
+            //remove rule title
+            $("#joinGameAdd").remove();
+            setTimer(time);
+          }, delay);
+        }
+
+        socket.on("all games", function (games) {
+          let nbgame = 0;
+          //replace the location by "https://www.lpt.ups-tlse.fr/" if server crash during a game
+          if ($(".active-game").length > 0) {
+            window.location.replace("https://www.lpt.ups-tlse.fr/");
+          }
+        });
+
+        socket.on("game updated", function (game) {
+          currentGame = game;
+          //update leaderboard
+          $(".leaderBoard").empty();
+          game.leaderBoard.forEach(function (player) {
+            if (!player.isBot) {
+              //replace current pseudo by "Vous"
+              $(".leaderBoard").prepend("<p><b>" + "Vous" + "</b></p>");
+            } else {
+              $(".leaderBoard").append("<p>" + "Joueur " + player.pseudo + "</p>");
+            }
+          });
+        });
+
+        socket.on("info updated", function (player) {
+          updateInfo(player);
+        });
+
+        //main.js => updateTableClickedCell
+        socket.on("table click update", function (player) {
+          updateTableClickedCell(player);
+        });
+
+        /**score animation*/
+        socket.on("anim score", function (player) {
+          $(".wrapper-nb-points").append("<span class='anim-score'>+" + (player.score - score) + "</span>");
+          setTimeout(function () {
+            $(".anim-score").remove();
+          }, 1500);
+        });
+
+        /**
+         * reveal cell
+         * @param {object} data
+         * @param {number} data.x
+         * @param {number} data.y
+         * @param {number} data.value
+         * @param {player} player
+         */
+        socket.on("reveal cell", function (data, player) {
+          currentGame = data.game;
+          updateInfo(player);
+          if (data.x > currentGame.data[0].length / 2) {
+            let limitCoin = 0;
+            for (let i = 0, row; (row = tbody.rows[i]); i++) {
+              //declaration of 2 variables in the loop : j et col
+              for (let j = 0, col; (col = row.cells[j]); j++) {
+                if (i === data.y && j === data.x) {
+                  limitCoin = data.game.nbStarMax < player.nbStar ? data.game.nbStarMax : player.nbStar;
+                  let coinList = "<div class='select-clue-inv'>";
+                  //construct the panel (to the left) to choose stars number the player will bet
+                  for (let k = 0; k <= limitCoin; k++) {
+                    coinList += "<div class='clue-" + k + "' data-clue='" + k + "'>" + k + "</div>";
+                  }
+                  coinList += "</div>";
+                  col.innerHTML = "<span class='cell-value'>" + data.value + "</span>" + coinList;
+                  scoreReveal = data.value;
+                  clickedCell.y = data.y;
+                  clickedCell.x = data.x;
+                  clickedCell.gameId = currentGame.id;
+                  changeFontColor();
+                }
+              }
+            }
+            let divLength = -(limitCoin + 1) * 30 + 10;
+            $(".select-clue-inv").css("left", divLength + "px");
+          } else {
+            //declaration of 2 variables in the loop : i & row
+            for (let i = 0, row; (row = tbody.rows[i]); i++) {
+              //declaration of 2 variables in the loop : j & col
+              for (let j = 0, col; (col = row.cells[j]); j++) {
+                if (i === data.y && j === data.x) {
+                  let limitCoin = data.game.nbStarMax < player.nbStar ? data.game.nbStarMax : player.nbStar;
+                  let coinList = "<div class='select-clue'>";
+                  //construct the panel (to the right) to choose stars number the player will bet
+                  for (let k = 0; k <= limitCoin; k++) {
+                    coinList += "<div class='clue-" + k + "' data-clue='" + k + "'>" + k + "</div>";
+                  }
+                  coinList += "</div>";
+                  col.innerHTML = "<span class='cell-value'>" + data.value + "</span>" + coinList;
+                  scoreReveal = data.value;
+                  clickedCell.y = data.y;
+                  clickedCell.x = data.x;
+                  clickedCell.gameId = currentGame.id;
+                  changeFontColor();
+                }
+              }
+            }
+          }
+        });
+
+        //next round => timer reset and refresh player value
+        socket.on("next round", function (game, colorGame) {
+          currentGame = game;
+          currentScoreTurn = 0;
+          cellRest = game.nbCells;
+          starRest = game.nbStar;
+          $(".nb-cell").html(game.nbCells);
+          $(".nb-coin").html(game.nbStar);
+          $(".nb-turn").html(game.round + "/" + game.nbRound);
+          $(".game .table").addClass("myturn");
+          $(".game #matrix .player-playing").html("");
+          if ($(".timeout").hasClass("active")) {
+            $(".timeout").removeClass("active");
+          }
+          $(".nb-scoreturn").html(currentScoreTurn);
+          //we don't want to warn the player during a demo game
+          if (game.gameContext !== "demo") {
+            $(".main-overlay").fadeIn();
+            $(".rep-text").html("Attendez les autres joueurs");
+            let random = Math.floor(Math.random() * (5000 - 1000)) + 1000;
+            clearInterval(timer);
+            setTimeout(function () {
+              $(".main-overlay").hide();
+              $(".main-overlay-turn").show();
+              $(".main-overlay-turn>h1").text("Jouez !");
+              $(".main-overlay-turn>h2").text("Tour : " + game.round + "/" + game.nbRound);
+              $("td").removeClass("alreadyclicked");
+              updateTableColor(colorGame);
+              setTimeout(function () {
+                $(".main-overlay-turn").fadeOut();
+                clearInterval(timer);
+                setTimer(game.time);
+              }, 1500);
+            }, random);
+          } else {
+            $(".main-overlay").hide();
+            $(".main-overlay-turn").show();
+            $(".main-overlay-turn>h1").text("Jouez !");
+            $(".main-overlay-turn>h2").text("Tour : " + game.round + "/" + game.nbRound);
+            $("td").removeClass("alreadyclicked");
+            updateTableColor(colorGame);
+            setTimeout(function () {
+              $(".main-overlay-turn").fadeOut();
+              clearInterval(timer);
+              setTimer(game.time);
+            }, 1500);
+          }
+        });
+
+        /**logged out*/
+        socket.on("logged out", function (context) {
+          if (context === "web" || "demo") {
+            location.reload();
+          }
+        });
+
+        /**end game*/
+        socket.on("end game", function (data) {
+          let game = {};
+          game = data.game;
+          let colorGame = data.colorGame;
+          $("td").removeClass("alreadyclicked");
+          updateTableColor(colorGame);
+          clearInterval(timer);
+          $(".timer").html("-");
+          refreshTopScore(game);
+        });
+
+        socket.on("cell already clicked", function () {
+          $(".cell-active").removeClass("cell-active");
+        });
+
+        /**refresh the score*/
+        socket.on("score round update", function (score) {
+          currentScoreTurn += score;
+          $(".nb-scoreturn").html(currentScoreTurn);
+        });
+
+        /**
+         * launch demo game
+         * @param {event} e
+         * @param {string} demoGameName
+         */
+        function playDemoGame(e, demoGameName) {
+          $(".web-rules").hide();
+          $(".in-game-rules").toggle();
+          e.preventDefault();
+
+          /**
+           * XHR request to /web/playWebGames
+           */
+          $.ajax({
+            type: "POST",
+            url: "../web/playWebGames",
+            data: {
+              demoGameName: demoGameName,
+              demo: true,
+            },
+            /**
+             * XHR response
+             * @param {object} data
+             * @param {number} data.currentGameIndex
+             * @param {game} data.data
+             * @param {date} data.firstGameId
+             * @param {date} data.gameid
+             * @param {string} data.name
+             * @param {string} data.pseudo
+             * @param {number} data.sessionLength
+             */
+          }).done(function (data) {
+            socket.emit("new game", data);
+            pseudo = data.pseudo;
+          });
+        }
+        /**
+         * launch web game
+         * @param {event} e
+         */
+        function playWebGame(e) {
+          e.preventDefault();
+          let playerAge = $("#playerAge").val();
+          let playerGender = $("#playerGender").val();
+          /**
+           * XHR request to /web/playWebGames
+           */
+          $.ajax({
+            type: "POST",
+            url: "../web/playWebGames",
+            data: {
+              pseudo: pseudo,
+              playerAge: playerAge,
+              playerGender: playerGender,
+              currentGameIndex: currentGameIndex,
+              sessionLength: sessionLength,
+              random: JSON.stringify({
+                randomList,
+              }),
+            },
+            /**
+             * XHR response
+             * @param {object} data
+             * @param {number} data.currentGameIndex
+             * @param {game} data.data
+             * @param {date} data.firstGameId
+             * @param {date} data.gameid
+             * @param {string} data.name
+             * @param {string} data.pseudo
+             * @param {array} data.randomList
+             * @param {number} data.sessionLength
+             */
+          }).done(function (data) {
+            $(".topScoreElement").remove();
+            $(".topScoreRule").remove();
+            $("#in-game-rule1").hide();
+            $("#in-game-rule2").hide();
+            $("#in-game-rule3").hide();
+            $("#in-game-rule4").hide();
+            $(".container").hide();
+            $("header").hide();
+            sessionLength = parseInt(data.sessionLength);
+            currentGameIndex = parseInt(data.currentGameIndex);
+            randomList = data.randomList;
+            //connect sequences indefinitely
+            if (currentGameIndex === sessionLength - 1) {
+              currentGameIndex = -1;
+              randomList = [];
+            }
+            if (currentGameIndex < sessionLength) {
+              currentGameIndex += 1;
+              // construct scoreboard
+              if (showScore) {
+                let endGame = document.getElementById("endGame");
+                let matrix = document.getElementById("matrix");
+                let removeTable = document.getElementById("removeTable");
+                document.body.removeChild(endGame);
+                matrix.removeChild(removeTable);
+                $(".nb-scoreturn").html("0");
+                $(".game #matrix .player-playing").html("");
+                showScore = false;
+              }
+              pseudo = data.pseudo;
+              //create new game
+              socket.emit("new game", data);
+              //add player to the game and launch it
+            } else {
+              //reload
+              location.reload();
+            }
+          });
+        }
+        socket.on("new game available web", function (gameid) {
+          let playerData = {};
+          playerData.pseudo = pseudo;
+          playerData.gameId = gameid;
+          //add player to the game and launch it
+          socket.emit("login", playerData);
+        });
+
+        socket.on("new game available demo", function (gameid) {
+          let demoData = {};
+          demoData.pseudo = pseudo;
+          demoData.gameId = gameid;
+          socket.emit("login", demoData);
+        });
+      });
+      //refresh player info
+      function updateInfo(player) {
+        cellRest = player.nbCells;
+        starRest = player.nbStar;
+        score = player.score;
+        $(".nb-points").html(player.score);
+        $(".nb-cell").html(player.nbCells);
+        $(".nb-coin").html(player.nbStar);
+      }
+
+      //Timer
+      function setTimer(time) {
+        $(".timer").html(time);
+        $(".wrapper-timer").css("background-color", "#339847");
+        timer = setInterval(function () {
+          time--;
+          $(".timer").html(time);
+          if (time === 10) {
+            $(".wrapper-timer").css("background-color", "#DD4242");
+          }
+          if (time <= 0) {
+            if (currentGame.timeractif === 1) {
+              if (cellRest > 0) {
+                $(".select-clue").remove();
+                $(".cell-value").remove();
+                clickedCell.gameId = currentGame.id;
+                clickedCell.x = "-";
+                clickedCell.y = "-";
+                socket.emit("end round web", clickedCell, 0, 0, true, pseudo);
+              }
+            } else {
+              if (cellRest > 0) {
+                $(".timeout").addClass("active");
+              }
+            }
+            clearInterval(timer);
+          }
+        }, 1000);
+      }
+
+      //Display the top score
+      function refreshTopScore(game) {
+        //web game
+        if (game.gameContext !== "demo") {
+          $.ajax({
+            type: "POST",
+            url: "../topscore",
+            data: {
+              leaderBoard: JSON.stringify(game.leaderBoard),
+              gameContext: game.gameContext,
+              rule: game.rule,
+            },
+            /**
+             *  XHR response
+             * @param {object} data
+             * @param {array} data.scoreUpdated
+             */
+          }).done(function (data) {
+            showScore = true;
+            let table = "<table><thead><tr><th>Joueur</th><th>Score</th></tr></thead><tbody>";
+            let topScoreTable = "<table><thead><tr><th>Rang</th><th>Score</th></tr></thead><tbody>";
+            let sortedTab = [];
+
+            //construct the scoreboard to sort
+            game.leaderBoard.forEach((element) => {
+              let playerToSort = {};
+              playerToSort.score = element.score;
+              playerToSort.pseudo = element.pseudo;
+              playerToSort.isBot = element.isBot;
+              sortedTab.push(playerToSort);
+            });
+
+            // Sort the scoreboard in descending order
+            for (let i = sortedTab.length - 1; i > 0; i--) {
+              for (let j = 0; j < i; j++) {
+                if (sortedTab[j].score < sortedTab[j + 1].score) {
+                  let tmp = {};
+                  tmp = sortedTab[j];
+                  sortedTab[j] = sortedTab[j + 1];
+                  sortedTab[j + 1] = tmp;
+                }
+              }
+            }
+
+            //display the sorted scoreboard
+            sortedTab.forEach(function (player) {
+              if (!player.isBot) {
+                table += "<tr><td>" + "<b>Vous</b>" + "</td><td>" + player.score + "</td></tr>";
+              } else {
+                table += "<tr><td>" + "Joueur " + player.pseudo + "</td><td>" + player.score + "</td></tr>";
+              }
+            });
+            table += "</tbody></table>";
+
+            //display the sorted top scoreboard
+            for (let i = 0; i < data.scoreUpdated.length; i++) {
+              if (data.scoreUpdated[i] === score) {
+                topScoreTable += "<tr><td>" + "<b>Vous</b>" + "</td><td>" + data.scoreUpdated[i] + "</td></tr>";
+              } else {
+                topScoreTable += "<tr><td>" + (i + 1) + "</td><td>" + data.scoreUpdated[i] + "</td></tr>";
+              }
+            }
+            topScoreTable += "</tbody></table>";
+            if (game.rule !== 1) {
+              $("body").prepend(
+                "<div class='end-game' id='endGame'><div class='content-end'><h2>Fin du jeu</h2>" +
+                  "<h5>Score du jeu</h5>" +
+                  table +
+                  "<h5>Top Score</h5>" +
+                  topScoreTable +
+                  '<button class="stigmer-btn" type="button" id="nextWebGame" style="width:100%;">Prochain Jeu</button>'
+              );
+            } else {
+              $("body").prepend(
+                "<div class='end-game' id='endGame'><div class='content-end'><h2>Fin du jeu</h2>" +
+                  "<h5>Score du jeu</h5>" +
+                  table +
+                  '<button class="stigmer-btn" type="button" id="nextWebGame" style="width:100%;">Prochain Jeu</button>'
+              );
+            }
+          });
+          //demo
+        } else {
+          showScore = true;
+          let table = "<table><thead><tr><th>Joueur</th><th>Score</th></tr></thead><tbody>";
+          table += "<tr><td>" + "Vous" + "</td><td>" + game.leaderBoard[0].score + "</td></tr>";
+          table += "</tbody></table>";
+          $("body").prepend(
+            "<div class='end-game' id='endGame'><div class='content-end'><h2>Fin du jeu</h2>" +
+              table +
+              '<button class="stigmer-btn" type="button" id="endDemo" style="width:100%;">Terminer</button>'
+          );
+        }
+      }
+
+      /**
+       * ON CLICK TABLE
+       * event function in main.js constructTable()
+       * @param {event} e
+       */
+      function selectRowCell(e) {
+        // e.target or window.event.srcElement depend of web browser
+        let cell = e.target || window.event.srcElement;
+        if (currentGame.waitMaxPlayer === 0 || currentGame.leaderBoard.length === currentGame.numberPlayers) {
+          //emit coordinates of the clickedCell and pseudo to the server
+          if (
+            cellRest > 0 &&
+            $("#matrix").find(".select-clue").length == 0 &&
+            $("#matrix").find(".select-clue-inv").length == 0 &&
+            cell.className != "alreadyclicked"
+          ) {
+            if (cell.cellIndex >= 0) {
+              let msg = {
+                x: cell.cellIndex,
+                y: cell.parentNode.rowIndex,
+                id: currentGame.id,
+              };
+              $(e.target).addClass("cell-active");
+
+              socket.emit("click grid", msg, pseudo);
+            }
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

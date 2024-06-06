@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <%- include('./partials/header.ejs'); %>
+    <input type="hidden" value="<%= env %>" id="nodeEnv" />
+    <div class="main-overlay">
+      <div class="stigmer-spinner"></div>
+      <h2></h2>
+    </div>
+    <div class="main-overlay-turn">
+      <div class="stigmer-spinner"></div>
+      <h1></h1>
+      <h2></h2>
+    </div>
+    <input type="hidden" id="pseudo" value="<%= locals.user.id %>" />
+    <input type="hidden" id="userAge" name="userAge" value="<%= locals.user.age %>" />
+    <input type="hidden" id="userGender" name="userGender" value="<%= locals.user.gender %>" />
+    <div class="container border-con">
+      <% if(locals.user.id !=="admin") { %>
+      <h1 class="game-title">Stigmer Game</h1>
+      <div class="row">
+        <div class="col manage-title">
+          <div class="pseudo-connexion">
+            <div class="pseudo-group">
+              <h3>Pseudo</h3>
+              <h6 class="manage-title"><%= locals.user.id %></h6>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% } %> <% if(locals.user.id ==="admin") { %>
+      <div class="row justify-content-md-center">
+        <div class="col-md-auto manage-title">
+          <div class="mb-3">
+            <img class="gameImg gameImgTest" id="launchFrontTest" title="Lancer les jeux" src="images/launch.png " alt="launch" />
+            <img class="gameImg gameImgTest" id="closeFrontTest" title="Quitter les jeux" src="images/close.png " alt="close" />
+            <img class="gameImg gameImgTest" id="allowPlayerToPlay" title="Autoriser le jeu" src="images/green_arrow.png " alt="allow" />
+            <img class="gameImg gameImgTest" id="forbidPlayerToPlay" title="Interdire le jeu" src="images/red_arrow.png " alt="forbid" />
+          </div>
+          <div class="localGameState">
+            <table class="table table-dark table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Nom</th>
+                  <th scope="col">Joueur(s)</th>
+                  <th scope="col">En Jeu</th>
+                  <th scope="col">Versus</th>
+                  <th scope="col">Synchro</th>
+                  <th scope="col">Round</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <% } %>
+      <div class="row justify-content-md-center">
+        <div class="col col-lg-6">
+          <div class="wrapper-select-game manage-title">
+            <div class="localGameSelect">
+              <p>Partie(s) en cours :</p>
+              <select id="availableGames" class="form-control">
+                <option value="">Sélectionnez un jeu !</option>
+              </select>
+            </div>
+
+            <button class="stigmer-btn invisible" type="button" id="connexion">Lancer le jeu</button>
+          </div>
+        </div>
+      </div>
+
+      <% if(locals.user.id ==="admin") { %>
+      <div class="row justify-content-md-center">
+        <div class="col-md-auto">
+          <div class="mb-5 text-center">
+            <button class="stigmer-btn" type="button" id="removeGame">Supprimer le jeu</button>
+            <button class="stigmer-btn" type="button" id="removeAllGames">TOUT Supprimer</button>
+          </div>
+        </div>
+      </div>
+      <% } %>
+    </div>
+    <div class="game stigmer-page">
+      <div class="stigmer-menu">
+        <ul></ul>
+      </div>
+      <div class="stigmer-page-wrapper">
+        <div class="timeout manage-title">Vous n'avez plus de temps, jouez !</div>
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="margin-local"></div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto">
+            <div class="container-info">
+              <div class="wrapper-timer">Temps restant : <span class="timer">-</span></div>
+              <div class="not-rule-1">
+                <div class="wrapper-stigmer-chip wrapper-nb-points">Score total <span class="stigmer-chip nb-points">0</span></div>
+              </div>
+              <div class="wrapper-stigmer-chip wrapper-nb-turn">Tour <span class="stigmer-chip nb-turn">-</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="not-rules-3-4">
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto">
+              <div class="container-info">
+                <div class="wrapper-stigmer-chip wrapper-nb-case">Cases restantes<span class="stigmer-chip nb-case">-</span></div>
+                <div class="wrapper-stigmer-chip wrapper-nb-coin">Etoiles restantes<span class="stigmer-chip nb-coin">-</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="matrix" class="clearf">
+          <p class="player-playing"></p>
+        </div>
+        <div class="card">
+          <p>Liste des joueurs :</p>
+          <div class="leaderBoard justify-content-md-center"></div>
+        </div>
+      </div>
+    </div>
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+      let nodeEnv = $("#nodeEnv").val();
+      let socket;
+      if (nodeEnv === "development") {
+        socket = io();
+      } else {
+        socket = io({ path: "/Stigmer/socket.io" });
+      }
+      let currentGame;
+      let score = 0;
+      let scoreReveal = 0;
+      let clickedCell = {};
+      let cellRest = 0;
+      let starRest = 0;
+      let time = null;
+      let timer;
+      let pseudo = $("#pseudo").val();
+      let currentScoreTurn = 0;
+
+      //Document Ready
+      $(document).ready(function () {
+        $(".leaderBoard").hide();
+        if (pseudo === "admin") {
+          $(".localGameSelect").show();
+          $("#connexion").hide();
+        }
+
+        $(document).on("click", "#endLocalButton", function () {
+          $(".logout").click();
+          $("#endGame").remove();
+        });
+
+        //launch front test (for admin only)
+        $(document).on("click", "#launchFrontTest", function () {
+          socket.emit("launch front test");
+        });
+
+        //close all front test games (for admin only)
+        $(document).on("click", "#closeFrontTest", function () {
+          socket.emit("close front test");
+        });
+
+        //allow all player to play
+        $(document).on("click", "#allowPlayerToPlay", function () {
+          socket.emit("allow player to play");
+        });
+
+        //forbid all player to play
+        $(document).on("click", "#forbidPlayerToPlay", function () {
+          socket.emit("forbid player to play");
+        });
+
+        //launch game
+        $(document).on("click", "#connexion", function () {
+          let userGender = $("#userGender").val();
+          let userAge = parseInt($("#userAge").val());
+          let gameId = $("#availableGames option").last().val();
+          if (gameId !== "") {
+            let data = {};
+            data.pseudo = pseudo;
+            data.gameId = gameId;
+            data.userGender = userGender;
+            data.userAge = userAge;
+            socket.emit("login", data);
+          } else {
+            $(".pseudo-connexion .pseudo-group").after('<p class="alert alert-danger">Veuillez choisir un jeu !</p>');
+            setTimeout(function () {
+              $(".alert").fadeOut();
+            }, 3000);
+          }
+        });
+
+        //emit event to socket "end round"
+        $(document).on("click", ".select-clue div", function (e) {
+          if (verbose) {
+            console.log("===== click select-clue div =====");
+            console.log("===== ADD alreadyclicked =====");
+          }
+          $(".cell-active").addClass("alreadyclicked");
+          //get the data value set in "reveal cell"
+          let clue = $(e.target).data("clue");
+          if (cellRest <= 0) {
+            clearInterval(timer);
+            $(".timer").html("-");
+            //waiting message after a click on the game board
+            if (!currentGame.simulation) {
+              if (currentGame.numberPlayers > 1 || currentGame.synchronised) {
+                $(".main-overlay").fadeIn();
+              }
+            }
+          }
+          if (verbose) console.log("===== REMOVE select-clue cell-value cell-active =====");
+          $(".select-clue").remove();
+          $(".cell-value").remove();
+          $(".cell-active").removeClass("cell-active");
+
+          socket.emit("end round", clickedCell, clue, scoreReveal, false, pseudo);
+        });
+
+        //emit event to socket "end round"
+        $(document).on("click", ".select-clue-inv div", function (e) {
+          if (verbose) {
+            console.log("===== click select-clue-inv div =====");
+            console.log("===== ADD alreadyclicked =====");
+          }
+          $(".cell-active").addClass("alreadyclicked");
+          //get the data value set in "reveal cell"
+          let clue = $(e.target).data("clue");
+          if (cellRest <= 0) {
+            clearInterval(timer);
+            $(".timer").html("-");
+            //waiting message after a click on the game board
+            if (!currentGame.simulation) {
+              if (currentGame.numberPlayers > 1 || currentGame.synchronised) {
+                $(".main-overlay").fadeIn();
+              }
+            }
+          }
+          if (verbose) console.log("===== REMOVE select-clue cell-value cell-active =====");
+          $(".select-clue-inv").remove();
+          $(".cell-value").remove();
+          $(".cell-active").removeClass("cell-active");
+
+          socket.emit("end round", clickedCell, clue, scoreReveal, false, pseudo);
+        });
+
+        //logout
+        $(document).on("click", ".logout", function () {
+          socket.emit("logout", currentGame.gameContext);
+          $('#availableGames option[value="' + currentGame.id + '"]').remove();
+          if ($("#availableGames option").length == 1) {
+            $(".wrapper-select-game").addClass("no-game");
+          }
+        });
+
+        //Remove a selected game
+        $(document).on("click", "#removeGame", function () {
+          let gameToRemove = parseInt($("#availableGames").val());
+          socket.emit("removed game", gameToRemove);
+        });
+
+        //Remove all local games
+        $(document).on("click", "#removeAllGames", function () {
+          socket.emit("remove all games");
+        });
+        //Force disconnection of all players in the same room
+        socket.on("force disconnection", function (gameId) {
+          if (pseudo !== "admin" && currentGame.id === gameId) {
+            $(".main-overlay>h2").text("Un joueur a quitté la partie... Vous avez été déconnecté.");
+            //waiting message after a disconnection
+            $(".main-overlay").fadeIn();
+            $(".main-overlay").fadeOut(3000);
+
+            currentGame = null;
+            score = 0;
+            $("#matrix .table").remove();
+            $(".logout").remove();
+            $(".game").removeClass("active-game");
+            clearInterval(timer);
+            $(".timer").html("-");
+            $(".stigmer-page.game").removeClass("stigmer-menu-open");
+            $("body").removeAttr("data-gameid");
+            $(".leaderBoard").hide();
+            socket.emit("removed game", gameId);
+          }
+        });
+
+        /**
+         * join game
+         * @param {game} game
+         * @param {colorGame} colorGame
+         * @param {player} player
+         * @param {player} playerPlaying
+         */
+        socket.on("join game", function (game, colorGame, player, playerPlaying) {
+          $(".leaderBoard").hide();
+          currentGame = game;
+          $(".main-overlay>h2").text("Attendez les autres joueurs !");
+          //waiting message after a player joined a game
+          if (!currentGame.simulation) {
+            if (game.numberPlayers > 1 || currentGame.synchronised) {
+              $(".main-overlay").fadeIn();
+            }
+          }
+          $(".timeout").removeClass("active");
+          $(".not-rule-1").show();
+          if (currentGame.rule === 1) {
+            $(".not-rule-1").hide();
+          }
+          $(".not-rules-3-4").show();
+          if (currentGame.rule !== 3 || currentGame.rule !== 4) {
+            $(".not-rules-3-4").hide();
+          }
+          //construct the table with possibility to interact with the map
+          constructTable(game, true);
+          $(".game").addClass("active-game");
+          updateInfo(player);
+          colorGame.leaderBoard = game.leaderBoard;
+          colorGame.round = game.round;
+          updateTableColor(colorGame);
+          time = game.time;
+          $("#availableGames").val(game.id);
+          $(".rule-name").html("Rule : " + game.rule);
+          $(".nb-points").html(player.score);
+          $(".pseudo").html(player.pseudo);
+          $(".game .stigmer-menu ul").prepend('<li class="logout">Quitter la partie</li>');
+          $(".nb-turn").html(game.round + "/" + game.nbRound);
+          $(".nb-case").html(player.nbCells);
+          $(".nb-coin").html(player.nbStar);
+          $(".game .table").addClass("myturn");
+          $("body").attr("data-gameid", game.id);
+          simulateClick("join game", game.round);
+        });
+
+        socket.on("pseudo not available", function () {
+          $(".pseudo-group").after("<p class='alert alert-danger'>Pseudo déja utilisé !</p>");
+          setTimeout(function () {
+            $(".alert").fadeOut();
+          }, 3000);
+        });
+
+        socket.on("all games", function (games) {
+          let nbgame = 0;
+          if ($(".active-game").length > 0) {
+            window.location.replace("https://www.lpt.ups-tlse.fr/");
+          }
+          if (games.length !== 0) {
+            //$(".wrapper-select-game").removeClass("no-game");
+            document.getElementById("connexion").disabled = false;
+            games.forEach(function (item) {
+              //If the game is ended we don't show it
+              if (item.gameContext === "local") {
+                if (item.round <= item.nbRound) {
+                  updateSelect(item);
+                  updateLocalGameStateTable(item);
+                  nbgame++;
+                }
+              }
+            });
+          }
+
+          if (pseudo === "admin") {
+            if (games.length === 0 || nbgame === 0) {
+              $(".wrapper-select-game").addClass("no-game");
+              document.getElementById("connexion").disabled = true;
+            }
+          } else {
+            if ($("#availableGames :last").val() === "") {
+              $(".wrapper-select-game").addClass("no-game");
+              document.getElementById("connexion").disabled = true;
+            }
+          }
+        });
+
+        socket.on("game updated", function (game) {
+          currentGame = game;
+          //update leaderboard
+          $(".leaderBoard").empty();
+          game.leaderBoard.forEach(function (player) {
+            if (player.pseudo === pseudo) {
+              $(".leaderBoard").prepend("<p><b>" + "Vous" + "</b></p>");
+            } else {
+              $(".leaderBoard").append("<p>" + player.pseudo + "</p>");
+            }
+          });
+        });
+
+        socket.on("game allowed", function () {
+          if (pseudo !== "admin") {
+            $(".wrapper-select-game").removeClass("no-game");
+          }
+        });
+
+        socket.on("game forbiden", function () {
+          if (pseudo !== "admin") {
+            $(".wrapper-select-game").addClass("no-game");
+          }
+        });
+
+        socket.on("info updated", function (player) {
+          updateInfo(player);
+        });
+
+        socket.on("display round state", function (id, round) {
+          if (pseudo === "admin") {
+            $('.localGameState tr[value="' + id + '"] td')
+              .last()
+              .text(round);
+          }
+        });
+
+        /**score animation*/
+        socket.on("anim score", function (player) {
+          $(".wrapper-nb-points").append("<span class='anim-score'>+" + (player.score - score) + "</span>");
+          setTimeout(function () {
+            $(".anim-score").remove();
+          }, 1500);
+        });
+
+        socket.on("score round update", function (score) {
+          currentScoreTurn += score;
+          $(".nb-scoreturn").html(currentScoreTurn);
+        });
+
+        socket.on("new game available", function (data) {
+          let isPlayerAllowed = false;
+          data.acceptedPlayers.forEach((player) => {
+            if (player === pseudo) {
+              isPlayerAllowed = true;
+            }
+          });
+          if (isPlayerAllowed) {
+            //$(".wrapper-select-game").removeClass("no-game");
+            document.getElementById("connexion").disabled = false;
+            updateSelect(data);
+            updateLocalGameStateTable(data);
+          }
+        });
+
+        socket.on("update nb player", function (game) {
+          if (pseudo === "admin") {
+            $('.localGameState tr[value="' + game.id + '"]').remove();
+            updateLocalGameStateTable(game);
+          }
+        });
+
+        socket.on("cell already clicked", function () {
+          if (verbose) console.log("===== REMOVE cell-active =====");
+          $(".cell-active").removeClass("cell-active");
+        });
+
+        /**
+         * reveal cell
+         * @param {object} data
+         * @param {number} data.x
+         * @param {number} data.y
+         * @param {number} data.value
+         * @param {player} player
+         */
+        socket.on("reveal cell", function (data, player) {
+          if (verbose) console.log("===== reveal cell =====");
+          clickedCell = {};
+          let table = document.getElementById("removeTable");
+          let cell = table.rows[data.y].cells[data.x];
+          changeFontColor();
+          currentGame = data.game;
+          updateInfo(player);
+          if (verbose) {
+            console.log("===== ADD cell-value =====");
+            console.log("===== ADD select-clue =====");
+          }
+          if (data.x > currentGame.data[0].length / 2) {
+            let limitCoin = 0;
+            limitCoin = data.game.nbStarMax < player.nbStar ? data.game.nbStarMax : player.nbStar;
+            let coinList = "<div class='select-clue-inv'>";
+            //construc the panel (to the left) to choose stars number the player will bet
+            for (let k = 0; k <= limitCoin; k++) {
+              coinList += "<div class='clue-" + k + "' data-clue='" + k + "'>" + k + "</div>";
+            }
+            coinList += "</div>";
+            cell.innerHTML = "<span class='cell-value'>" + data.value + "</span>" + coinList;
+            scoreReveal = data.value;
+            clickedCell.y = data.y;
+            clickedCell.x = data.x;
+            clickedCell.gameId = currentGame.id;
+            changeFontColor();
+            let divLength = -(limitCoin + 1) * 30 + 10;
+            $(".select-clue-inv").css("left", divLength + "px");
+          } else {
+            let limitCoin = data.game.nbStarMax < player.nbStar ? data.game.nbStarMax : player.nbStar;
+            let coinList = "<div class='select-clue'>";
+            //construc the panel (to the right) to choose stars number the player will bet
+            for (let k = 0; k <= limitCoin; k++) {
+              coinList += "<div class='clue-" + k + "' data-clue='" + k + "'>" + k + "</div>";
+            }
+            coinList += "</div>";
+            cell.innerHTML = "<span class='cell-value'>" + data.value + "</span>" + coinList;
+            scoreReveal = data.value;
+            clickedCell.y = data.y;
+            clickedCell.x = data.x;
+            clickedCell.gameId = currentGame.id;
+            changeFontColor();
+          }
+          if (currentGame.simulation) {
+            if (verbose) console.log("===== CLICK BOT STAR =====");
+            let randomClue = Math.floor(Math.random() * 6);
+            $(".clue-" + randomClue).click();
+          }
+        });
+
+        socket.on("end of waiting for players", function () {
+          //only one human player in the game
+          if (currentGame.acceptedPlayers.length === 1 && currentGame.numberPlayers !== 1) {
+            let random = Math.floor(Math.random() * (5000 - 1000)) + 1000;
+            setTimeout(function () {
+              $(".main-overlay").fadeOut();
+              setTimer(time);
+              $(".leaderBoard").show();
+            }, random);
+          } else {
+            $(".main-overlay").hide();
+            setTimer(time);
+            $(".leaderBoard").show();
+          }
+        });
+
+        socket.on("end of waiting for other teams", () => {
+          if (pseudo !== "admin") {
+            $(".main-overlay").hide();
+            $(".main-overlay-turn").show();
+            $(".main-overlay-turn>h1").text("Jouez !");
+            $(".main-overlay-turn>h2").text("Tour : " + currentGame.round + "/" + currentGame.nbRound);
+            setTimeout(function () {
+              $(".main-overlay-turn").fadeOut();
+              clearInterval(timer);
+              setTimer(time);
+              $(".leaderBoard").show();
+            }, 1500);
+          }
+        });
+
+        //next round => timer reset and refresh player value
+        socket.on("next round", function (game, colorGame) {
+          currentScoreTurn = 0;
+          currentGame = game;
+          if (verbose) {
+            console.log("===== Next round =====");
+            console.log("=====================");
+            console.log("TOUR n° :", game.round);
+            console.log("=====================");
+          }
+          cellRest = game.nbCells;
+          starRest = game.nbStar;
+          $(".nb-case").html(game.nbCells);
+          $(".nb-coin").html(game.nbStar);
+          $(".nb-turn").html(game.round + "/" + game.nbRound);
+          $(".game .table").addClass("myturn");
+          if ($(".timeout").hasClass("active")) {
+            $(".timeout").removeClass("active");
+          }
+          $(".nb-scoreturn").html(currentScoreTurn);
+          //only one human player in the game
+          if (!game.simulation) {
+            if (game.acceptedPlayers.length === 1 && game.numberPlayers !== 1 && !game.synchronised) {
+              let random = Math.floor(Math.random() * (5000 - 1000)) + 1000;
+              setTimeout(function () {
+                $(".main-overlay").hide();
+                $(".main-overlay-turn").show();
+                $(".main-overlay-turn>h1").text("Jouez !");
+                $(".main-overlay-turn>h2").text("Tour : " + game.round + "/" + game.nbRound);
+                if (verbose) console.log("===== REMOVE alreadyclicked =====");
+                $("td").removeClass("alreadyclicked");
+                updateTableColor(colorGame);
+                setTimeout(function () {
+                  $(".main-overlay-turn").fadeOut();
+                  clearInterval(timer);
+                  setTimer(time);
+                }, 1500);
+              }, random);
+            } else {
+              $(".main-overlay").hide();
+              $(".main-overlay-turn").show();
+              $(".main-overlay-turn>h1").text("Jouez !");
+              $(".main-overlay-turn>h2").text("Tour : " + game.round + "/" + game.nbRound);
+              if (verbose) console.log("===== REMOVE alreadyclicked =====");
+              $("td").removeClass("alreadyclicked");
+              updateTableColor(colorGame);
+              setTimeout(function () {
+                $(".main-overlay-turn").fadeOut();
+                clearInterval(timer);
+                setTimer(time);
+              }, 1500);
+            }
+          } else {
+            if (verbose) console.log("===== REMOVE alreadyclicked =====");
+            $("td").removeClass("alreadyclicked");
+            updateTableColor(colorGame);
+            simulateClick("next round", game.round);
+          }
+        });
+
+        socket.on("front bot", function (round) {
+          simulateClick("front bot", round);
+        });
+
+        socket.on("launched front test", function () {
+          if (pseudo !== "admin") {
+            if (!currentGame) {
+              $("#connexion").click();
+            }
+          }
+        });
+
+        socket.on("closed front test", function () {
+          if (pseudo !== "admin") {
+            $("#endLocalButton").click();
+          }
+        });
+
+        /**logged out*/
+        socket.on("logged out", function (context) {
+          if (context === "local") {
+            currentGame = null;
+            score = 0;
+            $("#matrix .table").remove();
+            $(".logout").remove();
+            $(".game").removeClass("active-game");
+            clearInterval(timer);
+            $(".timer").html("-");
+            $(".stigmer-page.game").removeClass("stigmer-menu-open");
+            $("body").removeAttr("data-gameid");
+            $(".main-overlay h2").text("");
+            $(".main-overlay").hide();
+            $(".leaderBoard").hide();
+          }
+        });
+
+        socket.on("max player", function () {
+          $(".pseudo-group").after("<p class='alert alert-danger'>Il n'y a plus de place dans cette partie !</p>");
+          setTimeout(function () {
+            $(".alert").fadeOut();
+          }, 3000);
+        });
+
+        // End game
+        // Display the score
+        socket.on("end game", function (data) {
+          let game = {};
+          let colorGame = {};
+          game = data.game;
+          colorGame = data.colorGame;
+          // TODO synchronized game
+          // only one human player in the game
+          if (!currentGame.simulation) {
+            if (game.acceptedPlayers.length === 1 && game.numberPlayers !== 1 && !game.synchronised) {
+              let random = Math.floor(Math.random() * (5000 - 1000)) + 1000;
+              setTimeout(function () {
+                $(".main-overlay").fadeOut();
+                if (verbose) console.log("===== REMOVE alreadyclicked =====");
+                $("td").removeClass("alreadyclicked");
+                updateTableColor(colorGame);
+                constructTopScoreTable(game);
+              }, random);
+            } else {
+              $(".main-overlay").hide();
+              $("td").removeClass("alreadyclicked");
+              updateTableColor(colorGame);
+              constructTopScoreTable(game);
+            }
+          } else {
+            constructTopScoreTable(game);
+          }
+        });
+
+        // Remove selected game
+        socket.on("remove game select", function (gameid) {
+          if (gameid) {
+            $('#availableGames option[value="' + gameid + '"]').remove();
+            $('.localGameState tr[value="' + gameid + '"]').remove();
+            if ($("#availableGames option").length == 1) {
+              $(".wrapper-select-game").addClass("no-game");
+            }
+          }
+        });
+
+        // Remove all games
+        socket.on("remove all games select", function () {
+          $('#availableGames option[value!=""]').remove();
+          $(".localGameState tbody").remove();
+          if ($("#availableGames option").length == 1) {
+            $(".wrapper-select-game").addClass("no-game");
+          }
+        });
+      });
+
+      function constructTopScoreTableVersus(game) {
+        $.ajax({
+          type: "POST",
+          url: "local/scores",
+          data: {
+            id: game.id,
+            session: game.currentSessionNumber,
+          },
+          /**
+           *  XHR response
+           * @param {object} data
+           * @param {array} data.scoreUpdated
+           */
+        }).done(function (scores) {
+          constructTopScoreTable(game);
+          let versusTable = "<h5>Scores du groupe</h5>";
+          versusTable += "<table><tbody>";
+          //! Scores of all teams => uncomment to see !!!
+          /*
+          scores.scores.forEach((element) => {
+            versusTable += "<tr><td>" + element.members + "</td><td>" + element.score + "</td></tr>";
+          });
+          */
+          //! <-- Display only the team score
+          let teamScore = 0;
+          game.leaderBoard.forEach((player) => {
+            teamScore += player.score;
+          });
+          versusTable += "<tr><td>" + teamScore + "</td></tr>";
+          //! <--
+          versusTable += "</tbody></table>";
+          $("#endLocalButton").before(versusTable);
+        });
+      }
+
+      function constructTopScoreTable(game) {
+        // Construct the scoreboard to sort
+        let sortedTab = [];
+        game.leaderBoard.forEach((element) => {
+          let playerToSort = {};
+          playerToSort.score = element.score;
+          playerToSort.pseudo = element.pseudo;
+          playerToSort.isBot = element.isBot;
+          sortedTab.push(playerToSort);
+        });
+        
+        // Sort the scoreboard in descending order
+        for (let i = sortedTab.length - 1; i > 0; i--) {
+          for (let j = 0; j < i; j++) {
+            if (sortedTab[j].score < sortedTab[j + 1].score) {
+              let tmp = {};
+              tmp = sortedTab[j];
+              sortedTab[j] = sortedTab[j + 1];
+              sortedTab[j + 1] = tmp;
+            }
+          }
+        }
+        
+        // Display the sorted scoreboard
+        let table = "";
+        if (game.rule !== 1) {
+          table += "<table><thead><tr><th>Joueur</th><th>Score</th></tr></thead><tbody>";
+          sortedTab.forEach(function (player) {
+            if (player.pseudo === pseudo) {
+              table += "<tr><td>" + "<b>Vous</b>" + "</td><td>" + player.score + "</td></tr>";
+            } else {
+              table += "<tr><td>" + player.pseudo + "</td><td>" + player.score + "</td></tr>";
+            }
+          });
+          table += "</tbody></table>";
+        }
+        $("body").prepend(
+          "<div class='end-game' id='endGame'><div class='content-end'><h2>Fin de la partie</h2>" +
+            table +
+            "<button id='endLocalButton' class='stigmer-btn' style='width:100%;'>Continuer</button></div></div>"
+        );
+
+        clearInterval(timer);
+      }
+
+      function updateLocalGameStateTable(game) {
+        if (game.gameContext === "local") {
+          let acceptedPlayers = game.acceptedPlayers;
+          let inGamePlayers = findInGamePlayers(game);
+          let isVersusGame = game.versus ? "oui" : "non";
+          let isSyncGame = game.synchronised ? "oui" : "non";
+          let displayAcceptedPlayers = "";
+          let displayInGamePlayers = "";
+          const reducer = (previousValue, currentValue) => previousValue + ", " + currentValue;
+          displayAcceptedPlayers = acceptedPlayers.reduce(reducer);
+          if (inGamePlayers.length !== 0) {
+            displayInGamePlayers = inGamePlayers.reduce(reducer);
+          }
+          if (pseudo == "admin") {
+            $(".localGameState table").append(
+              '<tbody><tr value="' +
+                game.id +
+                '"><th scope="row">' +
+                game.id +
+                "</th><td>" +
+                game.altGameName +
+                "</td><td>" +
+                displayAcceptedPlayers +
+                "</td><td>" +
+                displayInGamePlayers +
+                "</td><td>" +
+                isVersusGame +
+                "</td><td>" +
+                isSyncGame +
+                "</td><td>" +
+                game.round +
+                "</td></tr></tbody>"
+            );
+          }
+        }
+      }
+
+      // Refresh game select
+      function updateSelect(game) {
+        game.acceptedPlayers.forEach((element) => {
+          if (element === pseudo) {
+            $("#availableGames").append($("<option></option>").attr("value", game.id).text(game.name));
+          }
+        });
+        if (pseudo === "admin") {
+          $("#availableGames").append(
+            $("<option></option>")
+              .attr("value", game.id)
+              .text(game.name + " -- " + game.id)
+          );
+        }
+      }
+
+      function findInGamePlayers(game) {
+        let inGamePlayers = [];
+        game.leaderBoard.forEach((player) => {
+          if (!player.isBot) {
+            inGamePlayers.push(player.pseudo);
+          }
+        });
+        return inGamePlayers;
+      }
+
+      // Refresh player info
+      function updateInfo(player) {
+        cellRest = player.nbCells;
+        starRest = player.nbStar;
+        score = player.score;
+        $(".nb-points").html(player.score);
+        $(".nb-case").html(player.nbCells);
+        $(".nb-coin").html(player.nbStar);
+      }
+
+      function setTimer(time) {
+        $(".timer").html(time);
+        $(".wrapper-timer").css("background-color", "#339847");
+        timer = setInterval(function () {
+          time--;
+          $(".timer").html(time);
+          if (time === 10) {
+            $(".wrapper-timer").css("background-color", "#DD4242");
+          }
+          if (time <= 0) {
+            $(".timeout").addClass("active");
+            clearInterval(timer);
+          }
+        }, 1000);
+      }
+
+      function simulateClick(origin, round) {
+        if (verbose) console.log("===== simulateClick() ===== :", origin, round);
+        let msg = {};
+        let cell = null;
+        let table = document.getElementById("removeTable");
+        if (pseudo !== "admin" && currentGame.simulation) {
+          if (cellRest > 0 && $("#matrix").find(".select-clue").length == 0 && $("#matrix").find(".select-clue-inv").length == 0) {
+            let isCellClickable = false;
+            let randomX = null;
+            let randomY = null;
+            do {
+              randomX = Math.floor(Math.random() * 15);
+              randomY = Math.floor(Math.random() * 15);
+              msg.x = randomX;
+              msg.y = randomY;
+              msg.id = currentGame.id;
+              if (verbose) {
+                console.log("randomX :", randomX);
+                console.log("randomY :", randomY);
+              }
+              if (table.rows[randomY].cells[randomX].className !== "alreadyclicked") {
+                isCellClickable = true;
+              }
+              if (verbose) console.log("la cellule est cliquable : ", isCellClickable);
+            } while (!isCellClickable);
+
+            cell = table.rows[randomY].cells[randomX];
+            if (verbose) console.log("===== ADD cell-active =====");
+            cell.className = "cell-active";
+            if (verbose) console.log("===== CLICK BOT CELL =====");
+            socket.emit("click grid", msg, pseudo);
+          }
+        }
+      }
+
+      /**
+       * ON CLICK TABLE
+       * envent function in main.js constructTable()
+       * @param {event} e
+       */
+      function selectRowCell(e) {
+        let cell = e.target || window.event.srcElement;
+        if (currentGame.waitMaxPlayer === 0 || currentGame.leaderBoard.length === currentGame.numberPlayers) {
+          if (
+            cellRest > 0 &&
+            $("#matrix").find(".select-clue").length == 0 &&
+            $("#matrix").find(".select-clue-inv").length == 0 &&
+            cell.className !== "alreadyclicked"
+          ) {
+            if (cell.cellIndex >= 0) {
+              let msg = {
+                x: cell.cellIndex,
+                y: cell.parentNode.rowIndex,
+                id: currentGame.id,
+              };
+              $(e.target).addClass("cell-active");
+              socket.emit("click grid", msg, pseudo);
+            }
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

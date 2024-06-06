@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="container">
+      <form method="POST" action="connection/login">
+        <div class="border-con">
+          <div class="row justify-content-md-center">
+            <div class="col col-lg-6 manage-title">
+              <h1 class="game-title">Stigmer</h1>
+              <h2 class="connexion-title">Connexion</h2>
+              <fieldset class="field">
+                <legend class="field-legend">Infos joueur</legend>
+                <h5>Genre</h5>
+                <div class="row justify-content-md-center">
+                  <div class="col-md-auto">
+                    <div class="radio">
+                      <input type="radio" value="male" name="playerGenderLocal" id="playerGenderLocalMal" /> Homme
+                    </div>
+                  </div>
+                  <div class="col-md-auto">
+                    <div class="radio">
+                      <input type="radio" value="female" name="playerGenderLocal" id="playerGenderLocalFem" required />
+                      Femme
+                    </div>
+                  </div>
+                </div>
+                <h5 class="margin-top-small">Age</h5>
+                <div class="group">
+                  <input type="number" id="playerAgeLocal" name="playerAgeLocal" required min="1" max="120" step="1" />
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Age : </label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="row justify-content-md-center margin-top-small">
+            <div class="col col-lg-6 manage-title">
+              <div class="row justify-content-md-center">
+                <div class="col col-lg-6 manage-title">
+                  <div class="group">
+                    <input type="name" name="userId" id="userId" />
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>Identifiant</label>
+                  </div>
+                </div>
+              </div>
+              <br />
+              <div class="row justify-content-md-center">
+                <div class="col col-lg-6 manage-title">
+                  <div class="group">
+                    <input type="password" name="password" />
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>Mot de passe</label>
+                  </div>
+                </div>
+              </div>
+              <br />
+            </div>
+          </div>
+          <div class="row justify-content-md-center">
+            <div class="col col-lg-6 manage-title">
+              <button class="stigmer-btn" type="submit" id="send">Envoyer</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        $(document).on("change", "#userId", function () {
+          let userId = $("#userId").val();
+          if (userId === "admin") {
+            $("#playerAgeLocal").attr("required", false);
+            $("input[name='playerGenderLocal']").attr("required", false);
+          } else {
+            $("#playerAgeLocal").attr("required", true);
+            $("input[name='playerGenderLocal']").attr("required", true);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

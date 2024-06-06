@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+
+        <h1 class="game-title">Stigmer</h1>
+        <h2 class="connexion-title">Gestion des cartes</h2>
+
+        <form method="POST" action="maps">
+          <div class="row justify-content-md-center margin-top">
+            <div class="col col-lg-3 manage-title">
+              <h4>Type de cartes</h4>
+              <select id="map-type-select" name="mapType" class="form-control" required>
+                <option value="">Choisissez un type de cartes</option>
+                <option value="random">Random</option>
+                <option value="continuous1">Continuous 1</option>
+                <option value="continuous2">Continuous 2</option>
+                <option value="demo">Démo</option>
+              </select>
+            </div>
+            <div class="col col-lg-3 manage-title">
+              <h4>Cartes en mémoire</h4>
+              <select id="map-mem-select" name="mapName" class="form-control">
+                <option value="">Choisissez une carte</option>
+
+                <optgroup label="Random">
+                  <% for(let i = 0; i < maps.length; i++) { %> <% if(maps[i].mapType == "random"){ %>
+                  <option value="<%= maps[i].mapName %>"><%= maps[i].mapName %></option>
+                  <% } %> <% } %>
+                </optgroup>
+                <optgroup label="Continuous 1">
+                  <% for(let i = 0; i < maps.length; i++) { %> <% if(maps[i].mapType == "continuous1"){ %>
+                  <option value="<%= maps[i].mapName %>"><%= maps[i].mapName %></option>
+                  <% } %> <% } %>
+                </optgroup>
+                <optgroup label="Continuous 2">
+                  <% for(let i = 0; i < maps.length; i++) { %> <% if(maps[i].mapType == "continuous2"){ %>
+                  <option value="<%= maps[i].mapName %>"><%= maps[i].mapName %></option>
+                  <% } %> <% } %>
+                </optgroup>
+                <optgroup label="Démo">
+                  <% for(let i = 0; i < maps.length; i++) { %> <% if(maps[i].mapType == "demo"){ %>
+                  <option value="<%= maps[i].mapName %>"><%= maps[i].mapName %></option>
+                  <% } %> <% } %>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <br />
+
+          <div class="row justify-content-md-center">
+            <div class="col col-lg-6 manage-title">
+              <fieldset class="field">
+                <legend class="field-legend">Carte</legend>
+                <textarea id="map-input" name="map" rows="10" wrap="soft" placeholder="Entrer le tableau de votre carte ici"></textarea>
+
+                <div class="group-button">
+                  <button class="stigmer-btn" type="button" id="checkMap">Verifier</button>
+                  <button class="stigmer-btn" type="button" id="delCheckMap">Effacer</button>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="row map-textarea">
+            <div class="col">
+              <button class="stigmer-btn" type="submit" name="mapsButton" value="create" id="createMap">Créer</button>
+              <button class="stigmer-btn actionConf" type="submit" name="mapsButton" value="update" id="updateMap">Modifier</button>
+              <button class="stigmer-btn actionConf" type="submit" name="mapsButton" value="delete" id="deleteMap">Effacer</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="row check-table">
+          <div class="col">
+            <div id="matrix"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function () {
+        // Event on click on #map-mem-select
+        $(document).on("touchstart click change", "#map-mem-select", function (e) {
+          destructTable2();
+          let mapName = $("#map-mem-select").val();
+
+          if (mapName != "") {
+            //XHR request to /maps/mapValue to get values from DB
+            $.ajax({
+              method: "POST",
+              url: "maps/mapValue",
+              data: {
+                mapName: mapName,
+              },
+            }).done(function (map) {
+              //display DB values
+              $("#map-type-select").val(map.mapType);
+              $("#map-input").val(JSON.stringify(map.map));
+            });
+          } else {
+            //reset displayed values
+            $("#map-type-select").val("");
+            $("#map-input").val("");
+          }
+        });
+
+        // Delete map check
+        $(document).on("touchstart click", "#delCheckMap", function () {
+          destructTable2();
+        });
+
+        // Check the map
+        $(document).on("touchstart click", "#checkMap", function () {
+          //RegEx : remove 0 before a number
+          data = $("#map-input")
+            .val()
+            .replace(/(?<!\d|\.)0+(?!\D)(?!$)/g, "");
+          //RegEx : remove ' '
+          data = data.replace(/ /g, "");
+          try {
+            data = JSON.parse(data);
+            let height = data.length;
+            if (!document.getElementById("table")) {
+              constructTable2(data);
+            }
+          } catch (error) {
+            console.log(error.message);
+          }
+        });
+      });
+
+      // Construct elements to check the map
+      function constructTable2(data) {
+        let table = document.createElement("table");
+        table.setAttribute("class", "table table-bordered");
+        table.setAttribute("id", "table");
+        let matrixElmt = document.getElementById("matrix");
+        matrixElmt.appendChild(table);
+        matrixElmt.setAttribute("style", "max-width : none;");
+        let tbody = document.createElement("tbody");
+        tbody.setAttribute("id", "tbody");
+        tbody.setAttribute("class", "map-tbody");
+        table.appendChild(tbody);
+
+        let height = data.length;
+        for (let i = 0; i < height; i++) {
+          let tr = document.createElement("tr");
+          tbody.appendChild(tr);
+          for (let j = 0; j < height; j++) {
+            let td = document.createElement("td");
+            tr.appendChild(td);
+            td.setAttribute("class", "map-td");
+            let cellText = document.createTextNode(data[i][j]);
+            td.appendChild(cellText);
+            td.setAttribute("style", "color : cornsilk;");
+          }
+        }
+      }
+
+      function destructTable2() {
+        let table = document.getElementById("table");
+        if (table) {
+          let matrixElmt = document.getElementById("matrix");
+          matrixElmt.removeChild(table);
+        }
+      }
+    </script>
+  </body>
+</html>

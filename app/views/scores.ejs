@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container text-center">
+          <h1 class="game-title">Stigmer</h1>
+          <h2 class="connexion-title">Scores</h2>
+          <div class="query">
+            <div class="row justify-content-md-center">
+              <div class="col-md-auto">
+                <fieldset class="field">
+                  <legend class="field-legend">Session :</legend>
+                  <select id="gameSelectScoresSession" class="form-control">
+                    <option value="">Choisissez une session</option>
+                    <% for(let i=0; i < session.length; i++) { %>
+                    <option value="<%= session[i] %>"><%= session[i] %></option>
+                    <% } %>
+                  </select>
+                  <button type="button" class="stigmer-btn getScoreType" id="sessionButton" value="">Générer</button>
+                </fieldset>
+              </div>
+              <div class="col-md-auto">
+                <fieldset class="field">
+                  <legend class="field-legend">Jeux :</legend>
+                  <select id="gameSelectScoresLo" class="form-control">
+                    <option value="">Choisissez un jeu</option>
+                    <% for(let i=0; i < games.length; i++) { %>
+                    <option value="<%= games[i].gameid %>"><%= games[i].gameid %></option>
+                    <% } %>
+                  </select>
+                  <p id="scoreLoGameDate"></p>
+
+                  <select id="gameSelectScoresHi" class="form-control">
+                    <option value="">Choisissez un jeu</option>
+                    <% for(let i=0; i < games.length; i++) { %>
+                    <option value="<%= games[i].gameid %>"><%= games[i].gameid %></option>
+                    <% } %>
+                  </select>
+                  <p id="scoreHiGameDate"></p>
+                  <button type="button" class="stigmer-btn getScoreType" id="gameButton" value="multiple">
+                    Générer
+                  </button>
+                </fieldset>
+              </div>
+              <div class="col-md-auto">
+                <fieldset class="field">
+                  <legend class="field-legend">Session (VERSUS) :</legend>
+                  <select id="versusGameSelectScoresSession" class="form-control">
+                    <option value="">Choisissez une session</option>
+                    <% for(let i=0; i < versusSession.length; i++) { %>
+                    <option value="<%= versusSession[i] %>"><%= versusSession[i] %></option>
+                    <% } %>
+                  </select>
+                  <button type="button" class="stigmer-btn getScoreType" id="versusSessionButton" value="versus">
+                    Générer
+                  </button>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto manage-title">
+              <button type="button" class="stigmer-btn" id="showQuery">Afficher</button>
+              <button type="button" class="stigmer-btn" id="hideQuery">Cacher</button>
+            </div>
+          </div>
+          <div class="row justify-content-md-center">
+            <div class="col-md-auto manage-title">
+              <div class="scoresTable">
+                <table class="table table-dark table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">Rangs</th>
+                      <th scope="col">Joueurs</th>
+                      <th scope="col">Scores</th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function () {
+        $("#showQuery").hide();
+
+        // Display date of the game
+        $("#gameSelectScoresLo").change(function () {
+          let date = $(this).find(":selected").val();
+          date = date.split(".")[0];
+          let convertedDate = convertDate(date);
+          date === "" ? $("#scoreLoGameDate").text("") : $("#scoreLoGameDate").text(convertedDate);
+        });
+
+        // Display date of the game
+        $("#gameSelectScoresHi").change(function () {
+          let date = $(this).find(":selected").val();
+          date = date.split(".")[0];
+          let convertedDate = convertDate(date);
+          date === "" ? $("#scoreHiGameDate").text("") : $("#scoreHiGameDate").text(convertedDate);
+        });
+
+        // Show controls
+        $("#showQuery").click(() => {
+          $(".query").show();
+          $("#showQuery").hide();
+          $("#hideQuery").show();
+        });
+
+        // Hide controls
+        $("#hideQuery").click(() => {
+          $(".query").hide();
+          $("#showQuery").show();
+          $("#hideQuery").hide();
+        });
+
+        // Get the score by date, date and session or between 2 games
+        $(document).on("click", ".getScoreType", function () {
+          if (
+            (this.value === "multiple" &&
+              $("#gameSelectScoresHi").val() !== "" &&
+              $("#gameSelectScoresHi").val() !== "") ||
+            (this.value === "versus" && $("#versusGameSelectScoresSession").val() !== "") ||
+            (this.value === "" && $("#gameSelectScoresSession").val() !== "")
+          ) {
+            $("tbody").remove();
+            $.ajax({
+              type: "POST",
+              url: "scores/getScores",
+              data: {
+                button: this.value,
+                scoresHi: $("#gameSelectScoresHi").val(),
+                scoresLo: $("#gameSelectScoresLo").val(),
+                session: $("#gameSelectScoresSession").val(),
+                versusSession: $("#versusGameSelectScoresSession").val(),
+              },
+            }).done(function (data) {
+              if (data.isVersusGame) {
+                let scoreArray = JSON.parse(data.scores);
+                scoreArray.sort((a, b) => b.score - a.score);
+                let i = 1;
+                scoreArray.forEach((element) => {
+                  displayScoresTable(element.members, element.score, i);
+                  i++;
+                });
+              } else {
+                let scoreMap = JSON.parse(data.scores, reviver);
+                let i = 1;
+                for (let [player, score] of scoreMap.entries()) {
+                  displayScoresTable(player, score, i);
+                  i++;
+                }
+              }
+            });
+          }
+        });
+      });
+
+      // Update the score table
+      function displayScoresTable(player, score, rank) {
+        $(".scoresTable table").append(
+          '<tbody><tr><th scope="row">' + rank + "</th><td>" + player + "</td><td>" + score + "</td></tr></tbody>"
+        );
+      }
+
+      // Restore Map for JSON.parse
+      function reviver(key, value) {
+        if (typeof value === "object" && value !== null) {
+          if (value.dataType === "Map") {
+            return new Map(value.value);
+          }
+        }
+        return value;
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="main-overlay">
+      <div class="stigmer-spinner"></div>
+    </div>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container">
+          <h1 class="game-title">Stigmer</h1>
+          <h2 class="connexion-title">Gestion des données</h2>
+
+          <div class="row justify-content-md-center manage-col">
+            <div class="col-md-auto">
+              <fieldset class="field margin-top">
+                <legend class="field-legend">Archive(s)</legend>
+                <p><span class="manageError" id="manageArchiveError"></span></p>
+                <select id="archive" name="archive" class="form-control">
+                  <option value="">Archive(s) sur disque</option>
+                  <% for(let i = 0; i < files.length; i++) { %>
+                  <option value="<%= files[i] %>"><%= files[i] %></option>
+                  <% } %>
+                </select>
+                <p>Créée le : <span id="manageGameDate"></span></p>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="allLocalGamesMessage"></span></p>
+                    <button
+                      class="stigmer-btn"
+                      type="button"
+                      name="allLocalGames"
+                      value="allLocalGames"
+                      id="allLocalGames"
+                    >
+                      Backup (Local)
+                    </button>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="createArchiveMessage"></span></p>
+                    <button
+                      class="stigmer-btn"
+                      type="button"
+                      name="createArchive"
+                      value="createArchive"
+                      id="createArchive"
+                    >
+                      Créer Archive
+                    </button>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="downloadMessage"></span></p>
+                    <button class="stigmer-btn" type="button" name="download" value="download" id="download">
+                      Téléchager Archive
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <div class="row justify-content-md-center manage-col">
+            <div class="col-md-auto">
+              <fieldset class="field">
+                <legend class="field-legend">HDD/DB</legend>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <div class="group">
+                      <input type="password" id="checkPassword" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>Confirmez le mpd : </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="deleteFilesMessage"></span></p>
+                    <button class="stigmer-btn" type="button" name="deleteFiles" value="deleteFiles" id="deleteFiles">
+                      Effacer HDD
+                    </button>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="deleteDBMessage"></span></p>
+                    <button class="stigmer-btn" type="button" name="deleteDB" value="deleteDB" id="deleteDB">
+                      Effacer DB
+                    </button>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="deleteArchiveMessage"></span></p>
+                    <button
+                      class="stigmer-btn"
+                      type="button"
+                      name="deleteArchive"
+                      value="deleteArchive"
+                      id="deleteArchive"
+                    >
+                      Effacer Archives
+                    </button>
+                  </div>
+                </div>
+                <div class="row justify-content-md-center manage-col">
+                  <div class="col-md-auto">
+                    <p><span class="manageError" id="resetTopScoreMessage"></span></p>
+                    <button
+                      class="stigmer-btn"
+                      type="button"
+                      name="resetTopScore"
+                      value="resetTopScore"
+                      id="resetTopScore"
+                    >
+                      Effacer Scores (WEB)
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function () {
+        $("#archive").change(function () {
+          let date = $(this).find(":selected").val();
+          date = date.split(".")[0];
+          let convertedDate = convertDate(date);
+          date === "" ? $("#manageGameDate").text("") : $("#manageGameDate").text(convertedDate);
+        });
+
+        $("#download").click(function (e) {
+          let file = $("#archive").val();
+          if (file !== "") {
+            e.preventDefault();
+            window.location.href = "archives/" + file;
+          }
+        });
+
+        $("#deleteFiles").click(function () {
+          let pwd = $("#checkPassword").val();
+          let conf = confirm("Etes vous bien certain de vouloir SUPPRIMER les données sur le HDD ?");
+          if (conf) {
+            $(".main-overlay").fadeIn();
+            $.ajax({
+              type: "POST",
+              url: "manage/deleteData",
+              data: {
+                pwd: pwd,
+              },
+            }).done(function (data) {
+              $(".main-overlay").fadeOut();
+              if (!data.isDeleted) {
+                $("#deleteFilesMessage").show().text("ERREUR !").fadeOut(5000);
+              } else {
+                $("#deleteFilesMessage").show().text("OK !").fadeOut(5000);
+              }
+            });
+          }
+        });
+
+        $("#allLocalGames").click(function () {
+          $(".main-overlay").fadeIn();
+          $.ajax({
+            type: "POST",
+            url: "manage/allLocalGames",
+          }).done(function (data) {
+            $(".main-overlay").fadeOut();
+            if (!data.isDeleted) {
+              $("#allLocalGamesMessage").show().text("ERREUR !").fadeOut(5000);
+            } else {
+              $("#allLocalGamesMessage").show().text("OK !").fadeOut(5000);
+            }
+          });
+        });
+
+        $("#deleteDB").click(function () {
+          let pwd = $("#checkPassword").val();
+          let conf = confirm("Etes vous bien certain de vouloir SUPPRIMER les données sur la DB ?");
+          if (conf) {
+            $(".main-overlay").fadeIn();
+            $.ajax({
+              type: "POST",
+              url: "manage/deleteDB",
+              data: {
+                pwd: pwd,
+              },
+            }).done(function (data) {
+              $(".main-overlay").fadeOut();
+              if (!data.isDeleted) {
+                $("#deleteDBMessage").show().text("ERREUR !").fadeOut(5000);
+              } else {
+                $("#deleteDBMessage").show().text("OK !").fadeOut(5000);
+              }
+            });
+          }
+        });
+
+        $("#deleteArchive").click(function () {
+          let pwd = $("#checkPassword").val();
+          let conf = confirm("Etes vous bien certain de vouloir SUPPRIMER les archives sur le HDD ?");
+          if (conf) {
+            $(".main-overlay").fadeIn();
+            $.ajax({
+              type: "POST",
+              url: "manage/deleteArchive",
+              data: {
+                pwd: pwd,
+              },
+            }).done(function (data) {
+              $(".main-overlay").fadeOut();
+              if (!data.isDeleted) {
+                $("#deleteArchiveMessage").show().text("ERREUR !").fadeOut(5000);
+              } else {
+                $("#deleteArchiveMessage").show().text("OK !").fadeOut(5000);
+                $("#archive option[value!='']").remove();
+              }
+            });
+          }
+        });
+
+        $("#createArchive").click(function () {
+          $(".main-overlay").fadeIn();
+          $.ajax({
+            type: "POST",
+            url: "manage/createArchive",
+          }).done(function (data) {
+            $(".main-overlay").fadeOut();
+            if (!data.isCreated) {
+              $("#createArchiveMessage").show().text("ERREUR !").fadeOut(5000);
+            } else {
+              $("#createArchiveMessage").show().text("OK !").fadeOut(5000);
+              $("#archive").append(
+                $("<option></option>")
+                  .attr("value", data.file + ".zip")
+                  .text(data.file + ".zip")
+              );
+            }
+          });
+        });
+
+        $("#resetTopScore").click(function () {
+          let pwd = $("#checkPassword").val();
+          let conf = confirm("Etes vous bien certain de vouloir SUPPRIMER les SCORES pour les jeux WEB ?");
+          if (conf) {
+            $(".main-overlay").fadeIn();
+            $.ajax({
+              type: "POST",
+              url: "manage/resetTopScore",
+              data: {
+                pwd: pwd,
+              },
+            }).done(function (data) {
+              $(".main-overlay").fadeOut();
+              if (!data.isDeleted) {
+                $("#resetTopScoreMessage").show().text("ERREUR !").fadeOut(5000);
+              } else {
+                $("#resetTopScoreMessage").show().text("OK !").fadeOut(5000);
+              }
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

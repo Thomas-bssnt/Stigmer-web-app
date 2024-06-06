@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <input type="hidden" value="<%= env %>" id="nodeEnv" />
+    <div class="row justify-content-md-center">
+      <div class="col-md-auto center">
+        <div class="homeReplay">
+          <a href="newgame"><img class="home" title="Nouvelle partie" src="images/home.png" alt="home" /></a>
+        </div>
+        <div class="container replay">
+          <h1>Rejouer une partie</h1>
+
+          <select class="form-control select-replay">
+            <option value="" data-name="">Choississez un jeu</option>
+            <% for(let i=0; i < games.length; i++) { %>
+            <option value="<%= games[i].gameid %>" data-name="<%= games[i].gamename%>"><%= games[i].gameid %></option>
+            <% } %>
+          </select>
+          <p>Date : <span id="replayGameDate"></span></p>
+          <p>Nom : <span id="replayGameName"></span></p>
+          <button class="stigmer-btn" type="button" id="replayGame">Rejouer cette partie</button>
+        </div>
+      </div>
+    </div>
+    <div class="game stigmer-page">
+      <div class="stigmer-menu">
+        <ul>
+          <li class="logout">Quitter le replay</li>
+        </ul>
+      </div>
+
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto">
+            <div class="game-title">Stigmer - <span class="rule-name"></span></div>
+          </div>
+        </div>
+
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto center">
+            <div class="nav-step">
+              <button type="button" class="prev-step"><</button>
+              <div class="steps">Step <span>0</span></div>
+              <button type="button" class="next-step">></button>
+            </div>
+          </div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto center">
+            <div class="stigmer-card game-turn">Tour <span></span></div>
+            <div class="stigmer-card player-name">Joueur <span></span></div>
+          </div>
+        </div>
+        <div class="row justify-content-md-center"></div>
+        <div class="col-md-auto center">
+          <div class="stigmer-card cell-clicked">Case <span></span></div>
+          <div class="stigmer-card point-reveal">Valeur<span>-</span></div>
+        </div>
+
+        <div class="row justify-content-md-center">
+          <div class="col-md-auto center">
+            <div class="stigmer-card stigmer-clue">Etoiles<span>-</span></div>
+            <div class="stigmer-card point-gain">Score<span>-</span></div>
+          </div>
+        </div>
+
+        <div id="matrix"></div>
+      </div>
+    </div>
+
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+      let nodeEnv = $("#nodeEnv").val();
+      let socket;
+      if (nodeEnv === "development") {
+        socket = io();
+      } else {
+        socket = io({ path: "/Stigmer/socket.io" });
+      }
+
+      // 
+      $(document).ready(function () {
+        HTMLElement.prototype.click = function () {
+          let evt = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: this.ownerDocument.defaultView,
+            detail: 1,
+            screenX: 0,
+            screenY: 0,
+            clientX: 0,
+            clientY: 0,
+            ctrlKey: false,
+            shiftKey: false,
+            altKey: false,
+            metaKey: false,
+            button: 0,
+            relatedTarget: null,
+          });
+
+          this.dispatchEvent(evt);
+        };
+        let currentGame;
+        let numstate;
+        socket.on("new game available", function (game) {
+          $(".select-replay").append(
+            $("<option></option>").attr({ value: game.id, "data-name": game.name }).text(game.id)
+          );
+        });
+
+        // Replay
+        $(document).on("click", "#replayGame", function () {
+          let gameid = $(".select-replay :selected").val();
+
+          if (gameid) {
+            //XHR request to /replay/games
+            $.ajax({
+              method: "POST",
+              url: "replay/games",
+              data: {
+                gameid: gameid,
+              },
+            }).done(function (game) {
+              currentGame = game;
+              numstate = 0;
+              let firstState = {};
+              firstState.data = JSON.parse(game.gamestates[0].data);
+              constructTable(firstState, false);
+              $(".game").addClass("active-game");
+              updateTableColor(firstState);
+              $("#removeTable").addClass('without-after-element');
+              $(".rule-name").html("Rule : " + game.rule);
+              $(".game-turn span").html(game.gamestates[0].round);
+              $(".player-name span").html(game.gamestates[0].player);
+              $(".cell-clicked span").html("[" + game.gamestates[0].x + "," + game.gamestates[0].y + "]");
+              $(".prev-step").prop("disabled", true);
+              if (currentGame.gamestates.length - 1 === 0) {
+                $(".next-step").prop("disabled", true);
+              }
+            });
+          }
+        });
+
+        // 
+        $(".select-replay").change(function () {
+          let name = $(this).find(":selected").data("name");
+          let date = $(this).find(":selected").val();
+          let convertedDate = convertDate(date);
+          $("#replayGameName").text(name);
+          date === "" ? $("#replayGameDate").text("") : $("#replayGameDate").text(convertedDate);
+        });
+
+        // Next step
+        $(document).on("click", ".next-step", function () {
+          let state = {};
+          numstate++;
+          state.data = JSON.parse(currentGame.gamestates[numstate].data);
+          if (state.data.length > 0) {
+            updateTableColor(state);
+          }
+          $(".steps span").html(numstate);
+          $(".game-turn span").html(currentGame.gamestates[numstate].round);
+          $(".player-name span").html(currentGame.gamestates[numstate].player);
+          $(".cell-clicked span").html(
+            "[" + currentGame.gamestates[numstate].x + "," + currentGame.gamestates[numstate].y + "]"
+          );
+          $(".point-reveal span").html(currentGame.gamestates[numstate].pointreveal);
+          $(".stigmer-clue span").html(currentGame.gamestates[numstate].clue);
+          $(".point-gain span").html(currentGame.gamestates[numstate].pointgain);
+
+          if (numstate == currentGame.gamestates.length - 1) {
+            $(".next-step").prop("disabled", true);
+          }
+          $(".prev-step").prop("disabled", false);
+        });
+
+        // Previous step
+        $(document).on("click", ".prev-step", function () {
+          let state = {};
+          numstate--;
+          state.data = JSON.parse(currentGame.gamestates[numstate].data);
+          if (state.data.length > 0) {
+            updateTableColor(state);
+          }
+          $(".steps span").html(numstate);
+          $(".game-turn span").html(currentGame.gamestates[numstate].round);
+          $(".player-name span").html(currentGame.gamestates[numstate].player);
+          $(".cell-clicked span").html(
+            "[" + currentGame.gamestates[numstate].x + "," + currentGame.gamestates[numstate].y + "]"
+          );
+          $(".point-reveal span").html(currentGame.gamestates[numstate].pointreveal);
+          $(".stigmer-clue span").html(currentGame.gamestates[numstate].clue);
+          $(".point-gain span").html(currentGame.gamestates[numstate].pointgain);
+          if (numstate === 0) {
+            $(".prev-step").prop("disabled", true);
+          }
+          $(".next-step").prop("disabled", false);
+        });
+
+        // Quit replay
+        $(document).on("click", ".logout", function () {
+          $("#matrix .table").remove();
+          $(".game").removeClass("active-game");
+          $(".stigmer-page.game").removeClass("stigmer-menu-open");
+          currentGame = null;
+          numstate = 0;
+          $(".steps span").html(numstate);
+          $(".next-step").prop("disabled", false);
+        });
+      });
+    </script>
+  </body>
+</html>

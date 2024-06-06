@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <%- include('./partials/head.ejs'); %>
+
+  <body>
+    <div class="stigmer-page admin">
+      <%- include('./partials/menu.ejs'); %>
+      <div class="stigmer-page-wrapper">
+        <div class="stigmer-btn-menu">
+          <div class="bar"></div>
+        </div>
+        <div class="container">
+          <h1 class="game-title">Stigmer</h1>
+          <h2 class="connexion-title">Gestion des bots</h2>
+          <div class="text-center">
+            <p><span class="manageError" id="errorMessage"></span></p>
+          </div>
+          <div class="row justify-content-center">
+            <div class="col col-lg-4 manage-col">
+              <div class="group">
+                <input type="name" id="botName" />
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>botName : </label>
+              </div>
+            </div>
+
+            <div class="col col-lg-4 manage-col">
+              <h4 class="manage-title">Bots en mémoire</h4>
+              <select id="bot-select" class="form-control">
+                <option value="">Choisissez un bot</option>
+                <% for(let i = 0; i < bots.length; i++) { %>
+                <option value="<%= bots[i].botName %>"><%= bots[i].botName %></option>
+                <% } %>
+              </select>
+            </div>
+            <div class="col col-lg-4 manage-col">
+              <h4 class="manage-title">oneRoundMemory</h4>
+              <input type="checkbox" id="oneRoundMemory" />
+            </div>
+          </div>
+
+          <div class="row justify-content-md-center">
+            <div class="col col-lg-4 manage-col">
+              <div class="group">
+                <input type="number" id="paramVisit" step="any" value="0" />
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>a3, b3, a2, b2, a1, b1 : </label>
+                <button class="stigmer-btn" type="button" onclick="addValues(paramVisit.value,'visitStrategy')">Ajouter</button>
+                <button class="resetList" type="button" onclick="resetValues('visitStrategy')">Reset</button>
+              </div>
+            </div>
+            <div class="col col-lg-4 manage-col">
+              <select multiple="multiple" id="visitStrategy" class="form-control margin-top-small">
+                <option value="">Stratégie de visite</option>
+              </select>
+            </div>
+          </div>
+          <div class="row justify-content-md-center">
+            <div class="col col-lg-4 manage-col">
+              <div class="group">
+                <input type="number" id="paramExplor" step="any" value="0" />
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>ε, α : </label>
+                <button class="stigmer-btn" type="button" onclick="addValues(paramExplor.value,'exploration')">Ajouter</button>
+                <button class="resetList" type="button" onclick="resetValues('exploration')">Reset</button>
+              </div>
+            </div>
+            <div class="col col-lg-4 manage-col">
+              <select multiple="multiple" id="exploration" class="form-control margin-top-small">
+                <option value="">Exploration</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="bettingStrategyCarousel" class="carousel slide" data-interval="false" data-ride="carousel">
+            <ol class="carousel-indicators">
+              <li data-target="#bettingStrategyCarousel" data-slide-to="0" class="active tanh"></li>
+              <li data-target="#bettingStrategyCarousel" data-slide-to="1" class="linear"></li>
+            </ol>
+            <div class="carousel-inner">
+              <div class="carousel-item active text-center pad-bot tanh">
+                <div class="row justify-content-md-center">
+                  <div class="col col-md-auto">
+                    <div class="group">
+                      <input type="number" id="paramStarTanh" step="any" value="0" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>c0, d0, c5, d5 : </label>
+                      <button class="stigmer-btn" type="button" onclick="addValues(paramStarTanh.value,'bettingStrategy-tanh')">
+                        Ajouter
+                      </button>
+                      <button class="resetList" type="button" onclick="resetValues('bettingStrategy-tanh')">Reset</button>
+                    </div>
+                  </div>
+                  <div class="col col-md-auto">
+                    <select
+                      multiple="multiple"
+                      id="bettingStrategy-tanh"
+                      class="form-control margin-top-small selectMidMarginBot"
+                      data-type="tanh"
+                    >
+                      <option value="">Stratégie de mise</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="carousel-caption d-none d-md-block">
+                  <h5>P0, P5, P1234</h5>
+                </div>
+              </div>
+
+              <div class="carousel-item text-center pad-bot linear">
+                <div class="row justify-content-md-center">
+                  <div class="col col-md-auto">
+                    <div class="group">
+                      <input type="number" id="paramStarLin" step="any" value="0" />
+                      <span class="highlight"></span>
+                      <span class="bar"></span>
+                      <label>c, d : </label>
+                      <button class="stigmer-btn" type="button" onclick="addValues(paramStarLin.value,'bettingStrategy-linear')">
+                        Ajouter
+                      </button>
+                      <button class="resetList" type="button" onclick="resetValues('bettingStrategy-linear')">Reset</button>
+                    </div>
+                  </div>
+                  <div class="col col-md-auto">
+                    <select
+                      multiple="multiple"
+                      id="bettingStrategy-linear"
+                      class="form-control margin-top-small selectMidMarginBot"
+                      data-type="linear"
+                    >
+                      <option value="">Stratégie de mise</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="carousel-caption d-none d-md-block">
+                  <h5>Linear</h5>
+                </div>
+              </div>
+            </div>
+            <a class="carousel-control-prev" href="#bettingStrategyCarousel" role="button" data-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#bettingStrategyCarousel" role="button" data-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="sr-only">Next</span>
+            </a>
+          </div>
+
+          <div class="row justify-content-center map-textarea">
+            <div class="col col-lg-4">
+              <button class="stigmer-btn" type="button" value="create" onclick="submit(this.value)">Créer</button>
+              <button class="stigmer-btn actionConf" type="button" value="update" onclick="submit(this.value)">Modifier</button>
+              <button class="stigmer-btn actionConf" type="button" value="delete" onclick="submit(this.value)">Effacer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Click on #bot-select
+        $(document).on("change", "#bot-select", function () {
+          let botName = $("#bot-select").val();
+          if (botName != "") {
+            // XHR request to /bots/botValue – get values in DB
+            $.ajax({
+              method: "POST",
+              url: "bots/botValue",
+              data: {
+                botName: botName,
+              },
+            }).done(function (bot) {
+              // Reset values
+              resetAllSelect();
+              // Assign values to the interface
+              $("#botName").val(bot.botName);
+              let typeOfFunction = bot.typeOfFunction;
+              bot.bettingStrategy.forEach((element) => {
+                addValues(element, "bettingStrategy-" + typeOfFunction);
+              });
+              bot.exploration.forEach((element) => {
+                addValues(element, "exploration");
+              });
+              bot.visitStrategy.forEach((element) => {
+                addValues(element, "visitStrategy");
+              });
+              bot.oneRoundMemory !== null ? $("#oneRoundMemory").attr("checked", true) : $("#oneRoundMemory").attr("checked", false);
+              if (typeOfFunction) setCarouselSlide(typeOfFunction);
+            });
+          } else {
+            // Reset values
+            resetAllInput();
+            resetAllSelect();
+            $("#oneRoundMemory").attr("checked", false);
+          }
+        });
+      });
+
+      // Click on "reset" button
+      // Reset multiple select values
+      function resetValues(id) {
+        $("." + id).remove();
+      }
+
+      // Click on "ajouter" button
+      // Add values to the multiple select
+      function addValues(value, idSelect) {
+        if (value !== "") {
+          let option = document.createElement("option");
+          $("#" + idSelect).append(option);
+          option.setAttribute("value", value);
+          option.setAttribute("class", idSelect);
+          option.setAttribute("selected", "selected");
+          let t = document.createTextNode(value);
+          option.append(t);
+        }
+      }
+
+      // Reset all values in "input" fields
+      function resetAllInput() {
+        $("#botName").val("");
+        $("#paramVisit").val("");
+        $("#paramExplor").val("");
+        $("#paramStarTanh").val("");
+        $("#paramStarConst").val("");
+        $("#paramStarLin").val("");
+      }
+
+      // Reset all values in "mutiple select" fields
+      function resetAllSelect() {
+        resetValues("visitStrategy");
+        resetValues("exploration");
+        resetValues("bettingStrategy-tanh");
+        resetValues("bettingStrategy-linear");
+      }
+
+      // Check all fields before submitting
+      function checkForm(action, visitParams, exploreParams, betParams, typeOfFunction, botName) {
+        let errorMessage = "";
+        if (!botName) {
+          errorMessage = addErrorMessage(errorMessage, "botName est vide.");
+        }
+        if (visitParams.length !== 6) {
+          errorMessage = addErrorMessage(errorMessage, "Stratégie de visite doit contenir 6 paramètres.");
+        }
+        if (exploreParams.length !== 2) {
+          errorMessage = addErrorMessage(errorMessage, "Exploration doit contenir 2 paramètres.");
+        }
+        switch (typeOfFunction) {
+          case "tanh":
+            if (betParams.length !== 4) {
+              errorMessage = addErrorMessage(errorMessage, "Stratégie de mise 'tanh' doit contenir 4 paramètres.");
+            }
+            break;
+          case "linear":
+            if (betParams.length !== 2) {
+              errorMessage = addErrorMessage(errorMessage, "Stratégie de mise 'linear' doit contenir 2 paramètres.");
+            }
+            break;
+          default:
+            break;
+        }
+        // Display the error message for all actions except "delete"
+        if (errorMessage && action !== "delete") {
+          $("#errorMessage").text("");
+          $("#errorMessage").text(errorMessage);
+          return false;
+        } else {
+          return true;
+        }
+      }
+
+      // Concatenation of error messages
+      function addErrorMessage(errorMessage, messageToAdd) {
+        if (errorMessage) {
+          errorMessage += "\n" + messageToAdd;
+        } else {
+          errorMessage = messageToAdd;
+        }
+        return errorMessage;
+      }
+
+      // XHR request to /bots – save values in DB
+      function submit(action) {
+        let visitParams = $("#visitStrategy").val();
+        let exploreParams = $("#exploration").val();
+        let betSelect = $(".active select");
+        let betParams = betSelect.val();
+        let typeOfFunction = betSelect.attr("data-type");
+        let oneRoundMemory = $("#oneRoundMemory").prop("checked") ? "on" : null;
+        let botName = $("#botName").val();
+        if (checkForm(action, visitParams, exploreParams, betParams, typeOfFunction, botName)) {
+          $.ajax({
+            method: "POST",
+            url: "bots",
+            data: {
+              botName: botName,
+              action: action,
+              typeOfFunction: typeOfFunction,
+              visitStrategy: visitParams,
+              exploration: exploreParams,
+              bettingStrategy: betParams,
+              oneRoundMemory: oneRoundMemory,
+            },
+          }).done((data) => {
+            // Reload the page to refresh values
+            if (data.message === "success") {
+              location.reload();
+              // Display the error message coming from back-end
+            } else {
+              $("#errorMessage").show();
+              $("#errorMessage").text(data.message);
+              $("#errorMessage").fadeOut(5000);
+            }
+          });
+        }
+      }
+
+      // Display the right carousel slide (active) after the bot selection
+      function setCarouselSlide(typeOfFunction) {
+        resetActiveSlide();
+        $("." + typeOfFunction).addClass("active");
+      }
+
+      // Remove the active class from the carousel slide
+      function resetActiveSlide() {
+        $(".active").removeClass("active");
+      }
+    </script>
+  </body>
+</html>

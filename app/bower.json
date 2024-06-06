@@ -1,0 +1,14 @@
+{
+  "name": "stigmer",
+  "version": "2.0.0",
+  "main": "",
+  "authors": ["olivier <olivier.heguy@andil.fr>", "maxime <delacroix.mpf@gmail.com>"],
+  "private": true,
+  "ignore": ["**/.*", "node_modules", "bower_components", "test", "tests"],
+  "dependencies": {
+    "jquery": "^3.6.0",
+    "bootstrap": "^4.6.0",
+    "chroma-js": "^2.1.1",
+    "normalize.css": "^8.0.1"
+  }
+}
